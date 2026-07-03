@@ -1,0 +1,83 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# LeakSanitizer suppressions for running the H3.NET.Native managed soak with an
+# AddressSanitizer-instrumented libh3 loaded by the .NET host (see the asan-linux
+# CI job). Because libasan is LD_PRELOADed, ASan/LSan track EVERY allocation in
+# the process -- not just libh3's -- so the .NET runtime, ICU, and the glibc
+# dynamic loader each report their own process-lifetime allocations at exit.
+# Those are runtime noise, not binding bugs; this file filters them out.
+#
+# ---------------------------------------------------------------------------
+# WHY THIS IS SAFE (does not hide real libh3 leaks)
+# ---------------------------------------------------------------------------
+# * LSan matching: a leak is suppressed if ANY frame in its recorded allocation
+#   stack matches an entry below (substring match against the frame's module
+#   path or demangled function name).
+# * ASan records only the top `malloc_context_size` frames (default 30). A leak
+#   originating in libh3 has the libh3 call site as its TOP frame(s) -- the
+#   [LibraryImport("h3")] transition is a JIT-generated stub (anonymous memory),
+#   NOT a libcoreclr.so text address -- so libh3 leaks surface with `libh3.so`
+#   on top and reach the CI reporter. `libh3` is intentionally absent below, so
+#   any leak whose stack contains a libh3 frame is REPORTED and fails the gate.
+# * The runtime's own leaks (allocated by coreclr/JIT/ICU/loader for structures
+#   held for the whole process lifetime) surface with those modules on top and
+#   are the only thing matched here.
+# * Buffer overflow / use-after-free / double-free are ASan ERRORS, not leaks:
+#   they are NOT suppressible by this file and always fail with exitcode=1. This
+#   file only tunes the LEAK half of the gate.
+#
+# Keep ASan's malloc_context_size at its default (do NOT raise it): a larger
+# context could capture the shared thread-startup frames in libcoreclr.so at the
+# base of a libh3 leak's stack and over-suppress it.
+
+# --- .NET runtime native components ----------------------------------------
+# CoreCLR, the JIT, and the host shims allocate EE/GC bookkeeping, JIT'd-code
+# metadata, and host-resolution buffers once and hold them until process exit.
+leak:libcoreclr.so
+leak:libclrjit.so
+leak:libclrgc.so
+leak:libhostfxr.so
+leak:libhostpolicy.so
+leak:libnethost.so
+
+# PAL / interop shims: environment, globalization, and crypto interop keep
+# process-lifetime caches. libh3 never routes allocations through these.
+leak:libSystem.Native.so
+leak:libSystem.Globalization.Native.so
+leak:libSystem.Security.Cryptography.Native
+
+# --- ICU -------------------------------------------------------------------
+# ICU (used by System.Globalization) initializes immutable data tables and
+# per-converter caches that live for the process lifetime and are never freed.
+# `libicu` covers libicuuc / libicui18n / libicudata / libicutu; the function
+# fallbacks catch ICU statically linked into the globalization shim.
+leak:libicu
+leak:ucln_
+leak:icudt
+
+# --- glibc dynamic loader / TLS --------------------------------------------
+# The loader retains metadata for every dlopen'd shared object, and thread-local
+# storage blocks (dtv) persist for the life of each thread. These are matched by
+# loader/TLS function names, which never appear in a steady-state libh3 malloc
+# stack (libh3's dlopen happens once at startup, not in the hot path).
+leak:_dl_
+leak:__tls_get_addr
+leak:allocate_dtv
+
+# --- .NET ReadyToRun (R2R) runtime noise ------------------------------------
+# Crossgen'd framework assemblies execute NATIVE R2R code mapped from the .dll
+# itself, so LSan symbolizes those frames under the ASSEMBLY name (e.g.
+# "System.Private.CoreLib.dll"), not libcoreclr.so - the native-module entries
+# above do not match them. Seen live on CI (asan-linux round 2): one ~72 KB
+# process-lifetime allocation in the vstest CONSOLE process (which never loads
+# libh3) from System.Diagnostics.StackTrace materializing an exception stack
+# trace through System.Reflection.Metadata's lazily-allocated PDB/metadata
+# reader cache. The two metadata entries are safe under any-frame matching:
+# those assemblies only appear ABOVE allocations they themselves make - never
+# in a libh3 allocation stack. vstest.console.dll exists only in the runner
+# process, which never loads libh3, so it cannot mask a binding leak either.
+# Deliberately NOT suppressed: System.Private.CoreLib (its R2R frames could
+# plausibly sit within the recorded context of a genuine libh3 leak stack).
+leak:System.Reflection.Metadata
+leak:System.Diagnostics.StackTrace
+leak:vstest.console

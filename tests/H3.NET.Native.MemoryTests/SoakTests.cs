@@ -244,6 +244,19 @@ public sealed class SoakTests
             managedPeak <= managedLimit,
             FormatGrowthMessage("Managed heap", managedBaseline, managedPeak, managedLimit));
 
+        // Under AddressSanitizer the process RSS is legitimately inflated by shadow
+        // memory, per-allocation redzones, and the freed-memory quarantine, so the
+        // RSS heuristic below false-positives. The asan-linux CI job disables it via
+        // H3_SOAK_CHECK_RSS=0 because LSan itself is the stronger leak oracle there;
+        // the managed-heap bound above stays active everywhere.
+        if (string.Equals(
+                Environment.GetEnvironmentVariable("H3_SOAK_CHECK_RSS"),
+                "0",
+                StringComparison.Ordinal))
+        {
+            return;
+        }
+
         // RSS is the noisiest signal (OS lazily reclaims, allocator caches, other
         // threads), but a flat floor does not scale with run length: a small per-
         // iteration native leak can stay under a generous fixed floor at the default
