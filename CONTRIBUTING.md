@@ -52,7 +52,7 @@ dotnet test tests/H3.NET.Native.Tests/H3.NET.Native.Tests.csproj -c Release -f n
   -- --coverage --coverage-output-format cobertura --coverage-output h3.cobertura.xml
 ```
 
-The report is written under the test project's `TestResults/`. CI collects it on the `linux-x64` leg and uploads it as the `coverage-linux-x64` artifact; coverage is informational only (no thresholds, never gates).
+The report is written under the test project's `TestResults/`. CI collects it on the `linux-x64` leg and uploads it as the `coverage-linux-x64` artifact. Coverage is a hard gate: the job fails if either the overall line-rate or branch-rate drops below 80 percent, so new code must land with tests that keep both metrics above the bar.
 
 ## Code style
 

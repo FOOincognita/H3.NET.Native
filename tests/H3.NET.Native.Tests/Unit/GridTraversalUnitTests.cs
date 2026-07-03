@@ -76,6 +76,28 @@ public sealed class GridTraversalUnitTests
         Assert.Equal(expected, actual);
     }
 
+    [Fact]
+    public void GridRing_KExceedingArrayMaxLength_ThrowsArgumentOutOfRange()
+    {
+        // maxGridRingSize(k) == 6k returns E_SUCCESS for any k >= 0; at k this large the
+        // 6k size (~2.4e9) exceeds Array.MaxLength, so the managed guard rejects it before
+        // allocating rather than overflowing.
+        const int k = 400_000_000;
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() => SampleCell(9).GridRing(k));
+        Assert.Equal("k", ex.ParamName);
+    }
+
+    [Fact]
+    public void GridRingInto_KExceedingArrayMaxLength_ThrowsArgumentOutOfRange()
+    {
+        // The k-overflow guard precedes the destination-length guard, so an empty
+        // destination still surfaces the k overflow.
+        const int k = 400_000_000;
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(
+            () => SampleCell(9).GridRingInto(k, Span<H3Index>.Empty));
+        Assert.Equal("k", ex.ParamName);
+    }
+
     // ---- GridPathCells -----------------------------------------------------
 
     [Fact]
@@ -247,6 +269,17 @@ public sealed class GridTraversalUnitTests
     }
 
     [Fact]
+    public void GridDiskDistances_KExceedingArrayMaxLength_ThrowsArgumentOutOfRange()
+    {
+        // maxGridDiskSize(30000) == 2_700_090_001 exceeds Array.MaxLength; the managed
+        // guard rejects it before allocating the parallel cell/distance buffers.
+        const int k = 30_000;
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(
+            () => SampleCell(9).GridDiskDistances(k));
+        Assert.Equal("k", ex.ParamName);
+    }
+
+    [Fact]
     public void GridDiskDistances_ParallelArrays_AreLockstep()
     {
         // Invariant: cells[i]'s grid distance from the origin equals distances[i].
@@ -285,6 +318,17 @@ public sealed class GridTraversalUnitTests
         var ex = Assert.Throws<ArgumentOutOfRangeException>(
             () => origin.GridDiskDistancesInto(k, cells, distances));
         Assert.Equal("distances", ex.ParamName);
+    }
+
+    [Fact]
+    public void GridDiskDistancesInto_KExceedingArrayMaxLength_ThrowsArgumentOutOfRange()
+    {
+        // The k-overflow guard precedes both span-length guards, so empty spans still
+        // surface the k overflow rather than a cells/distances length error.
+        const int k = 30_000;
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(
+            () => SampleCell(9).GridDiskDistancesInto(k, Span<H3Index>.Empty, Span<int>.Empty));
+        Assert.Equal("k", ex.ParamName);
     }
 
     [Fact]
