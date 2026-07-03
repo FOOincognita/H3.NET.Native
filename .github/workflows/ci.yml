@@ -391,18 +391,12 @@ jobs:
   # instruments the whole host. Heap/stack buffer overflow, use-after-free, and
   # double-free in libh3 or the binding path fail immediately (exitcode=1) and are
   # NOT suppressible; LSan leak reports are filtered by lsan.supp down to leaks
-  # attributable to libh3 (CLR/JIT/ICU/loader noise is ignored).
-  #
-  # continue-on-error (non-gating) for now: the ASan+CLR signal/leak interaction is
-  # environment-sensitive and this could not be validated locally (no linux
-  # container runtime on the dev box). It graduates to a hard gate once it is green
-  # for ~5 consecutive runs on real CI (drop continue-on-error then). The overflow
-  # half is already authoritative on day one; only leak-gating precision needs the
-  # soak-in period.
+  # attributable to libh3 (CLR/JIT/ICU/loader noise is ignored). Hard gate since
+  # 2026-07-03, after a 5-green soak-in of the ASan+CLR leak-signal interaction
+  # (it could not be validated locally: no linux container runtime on the dev box).
   asan-linux:
     name: asan-linux
     runs-on: ubuntu-latest
-    continue-on-error: true
     env:
       # Defer signal handling to the CLR (it installs its own SIGSEGV handler for
       # null-ref/GC write barriers and manages alt stacks), enable leak detection,
