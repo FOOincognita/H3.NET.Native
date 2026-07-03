@@ -43,6 +43,17 @@ pip install -r tools/gen-fixtures/requirements.txt
 
 Note: a developer machine's system `h3-py` may be **v3**, which exposes a different (incompatible) API. Always use the pinned venv from `tools/gen-fixtures/requirements.txt` so fixtures are generated against the v4 API that matches the bundled native library.
 
+## Code coverage
+
+The suite runs on Microsoft.Testing.Platform (xUnit v3), so coverage uses the MTP-native extension (`Microsoft.Testing.Extensions.CodeCoverage`), not the VSTest coverlet collector (which MTP ignores). Collect a cobertura report locally with:
+
+```sh
+dotnet test tests/H3.NET.Native.Tests/H3.NET.Native.Tests.csproj -c Release -f net10.0 \
+  -- --coverage --coverage-output-format cobertura --coverage-output h3.cobertura.xml
+```
+
+The report is written under the test project's `TestResults/`. CI collects it on the `linux-x64` leg and uploads it as the `coverage-linux-x64` artifact; coverage is informational only (no thresholds, never gates).
+
 ## Code style
 
 The following are enforced by the build and `.editorconfig`:

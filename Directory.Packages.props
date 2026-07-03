@@ -16,7 +16,12 @@
     <!-- Matches pocketken.H3 4.0.0's own NetTopologySuite dependency; the benchmarks
          build pocketken's NTS-based polyfill input (Polygon) directly. -->
     <PackageVersion Include="NetTopologySuite" Version="2.5.0" />
-    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <!-- MTP-native code coverage extension (adds the coverage flag to the MTP runner).
+         Pinned to 18.0.x on purpose: 18.0.6 targets Microsoft.Testing.Platform v1
+         (>= 1.8.4), matching the MTP v1 line that xunit.v3 3.2.2 (xunit.v3.mtp-v1)
+         resolves. 18.1.0+ requires MTP v2 and would break the xunit.v3 runner. Replaces
+         the VSTest coverlet collector, which is ignored under MTP (raised MTP0001). -->
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.0.6" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" />
   </ItemGroup>
 

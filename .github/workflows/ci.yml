@@ -136,9 +136,28 @@ jobs:
       - name: Test (net8.0)
         run: dotnet test H3.NET.Native.slnx -c Release -f net8.0 --no-build
 
-      # coverage deferred to follow-up (MTP code-coverage extension)
-      # (coverlet.collector emits MTP0001 under Microsoft.Testing.Platform; collecting
-      # it correctly would require a package/csproj change, which is out of scope here).
+      # Code coverage (linux-x64 leg only, non-gating). Re-runs just the net10.0 test
+      # project under the MTP-native coverage extension (Microsoft.Testing.Extensions.CodeCoverage)
+      # and emits a cobertura report. Informational only: no thresholds, never fails the build.
+      # The Test steps above are unchanged and run identically on every leg; this extra step is
+      # the sole opt-in to instrumentation. --results-directory is an MTP platform option, so it
+      # must sit after the `--` separator; an absolute path lands the report deterministically
+      # (a project-relative one resolves against the test host cwd and is doubled).
+      - name: Coverage (net10.0, cobertura)
+        if: matrix.label == 'linux-x64'
+        run: >
+          dotnet test tests/H3.NET.Native.Tests/H3.NET.Native.Tests.csproj -c Release -f net10.0 --no-build
+          -- --coverage --coverage-output-format cobertura --coverage-output h3.cobertura.xml
+          --results-directory "${{ github.workspace }}/artifacts/coverage"
+
+      - name: Upload coverage report
+        if: matrix.label == 'linux-x64'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-linux-x64
+          path: ${{ github.workspace }}/artifacts/coverage/h3.cobertura.xml
+          retention-days: 7
+          if-no-files-found: error
 
   # musl/alpine managed tests run via `docker run` (NOT a job `container:`) so the
   # JS-based actions (checkout, download-artifact) execute on the glibc host; only the

@@ -35,7 +35,8 @@
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="CsCheck" />
-    <PackageReference Include="coverlet.collector" />
+    <!-- MTP-native code coverage: enables the `dotnet test` coverage flag under MTP. -->
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
   </ItemGroup>
 
   <ItemGroup>
