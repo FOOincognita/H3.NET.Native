@@ -39,13 +39,13 @@ public sealed class StringRoundTripTests
     [Fact]
     public void NullSentinel_BaseCellNumber_Throws()
     {
-        Assert.Throws<H3InvalidCellException>(() => _ = H3Index.Null.BaseCellNumber);
+        Assert.Throws<H3InvalidIndexException>(() => _ = H3Index.Null.BaseCellNumber);
     }
 
     [Fact]
     public void NullSentinel_IsResClassIII_Throws()
     {
-        Assert.Throws<H3InvalidCellException>(() => _ = H3Index.Null.IsResClassIII);
+        Assert.Throws<H3InvalidIndexException>(() => _ = H3Index.Null.IsResClassIII);
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public sealed class StringRoundTripTests
     [Fact]
     public void NullSentinel_IsValidIndex_IsFalse_AndDoesNotThrow()
     {
-        Assert.False(H3Index.Null.IsValidIndex);
+        Assert.False(H3Index.Null.IsValidIndex());
     }
 
     [Fact]

@@ -22,25 +22,26 @@ public readonly partial record struct H3Index(ulong Value)
     /// <summary>Gets a value indicating whether this is the <see cref="Null"/> sentinel (raw value <c>0</c>).</summary>
     public bool IsNull => Value == 0;
 
-    /// <summary>Gets a value indicating whether the native library considers this a valid H3 cell.</summary>
-    public bool IsValidCell => NativeMethods.IsValidCell(Value) != 0;
-
-    /// <summary>Gets a value indicating whether this is a valid H3 cell. Alias for <see cref="IsValidCell"/>.</summary>
-    public bool IsValid => IsValidCell;
+    /// <summary>
+    /// Returns a value indicating whether the native library considers this a valid H3 cell.
+    /// </summary>
+    /// <returns><see langword="true"/> if this is a valid H3 cell; otherwise <see langword="false"/>.</returns>
+    public bool IsValidCell() => NativeMethods.IsValidCell(Value) != 0;
 
     /// <summary>
-    /// Gets a value indicating whether the native library considers this a valid H3
+    /// Returns a value indicating whether the native library considers this a valid H3
     /// index of any kind: a cell, a directed edge, or a vertex. This is broader than
-    /// <see cref="IsValidCell"/>, which is true only for cells; it returns
+    /// <see cref="IsValidCell()"/>, which is true only for cells; it returns
     /// <see langword="true"/> for valid edge and vertex indexes even though the typed
     /// edge and vertex APIs are introduced in later releases.
     /// </summary>
-    public bool IsValidIndex => NativeMethods.IsValidIndex(Value) != 0;
+    /// <returns><see langword="true"/> if this is a valid H3 index (cell, directed edge, or vertex); otherwise <see langword="false"/>.</returns>
+    public bool IsValidIndex() => NativeMethods.IsValidIndex(Value) != 0;
 
     /// <summary>
     /// Gets the resolution (0-15) of this cell.
     /// </summary>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     public int Resolution
     {
         get
@@ -53,7 +54,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// <summary>
     /// Gets the base cell number (0-121) of this cell.
     /// </summary>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     public int BaseCellNumber
     {
         get
@@ -66,7 +67,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// <summary>
     /// Gets a value indicating whether this cell is one of the twelve pentagons at its resolution.
     /// </summary>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     public bool IsPentagon
     {
         get
@@ -81,7 +82,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// whose resolution is odd. Class III cells are rotated and slightly distorted
     /// relative to Class II (even-resolution) cells.
     /// </summary>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     public bool IsResClassIII
     {
         get
@@ -111,7 +112,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// Returns the geographic center of this cell.
     /// </summary>
     /// <returns>The cell center, in degrees.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     public LatLng ToLatLng()
     {
         H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToLatLng(Value, out NativeLatLng native));
@@ -122,7 +123,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// Returns the boundary vertices of this cell in counter-clockwise order.
     /// </summary>
     /// <returns>The boundary vertices, in degrees (5 vertices for pentagons, 6 for hexagons, more when edges cross icosahedron faces).</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     public IReadOnlyList<LatLng> GetBoundary()
     {
         H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToBoundary(Value, out CellBoundary boundary));
@@ -306,7 +307,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// Returns the icosahedron face numbers (0-19) that this cell intersects.
     /// </summary>
     /// <returns>The distinct face numbers the cell touches (1-2 for hexagons, 5 for pentagons).</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     /// <exception cref="H3Exception">The native operation failed.</exception>
     public int[] GetIcosahedronFaces()
     {
@@ -354,7 +355,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// </param>
     /// <returns>The number of distinct faces written to the front of <paramref name="destination"/>.</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="destination"/> is too small.</exception>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     /// <exception cref="H3Exception">The native operation failed.</exception>
     public int GetIcosahedronFacesInto(Span<int> destination)
     {
@@ -508,26 +509,26 @@ public readonly partial record struct H3Index(ulong Value)
     /// <summary>
     /// Returns the parent cell of this cell at the given coarser resolution.
     /// </summary>
-    /// <param name="parentRes">The target parent resolution (0-15); must be less than or equal to this cell's resolution.</param>
-    /// <returns>The parent <see cref="H3Index"/> at <paramref name="parentRes"/>.</returns>
-    /// <exception cref="H3DomainException"><paramref name="parentRes"/> is outside the range 0-15.</exception>
-    /// <exception cref="H3Exception"><paramref name="parentRes"/> is finer than this cell's resolution, or the native operation failed.</exception>
-    public H3Index CellToParent(int parentRes)
+    /// <param name="parentResolution">The target parent resolution (0-15); must be less than or equal to this cell's resolution.</param>
+    /// <returns>The parent <see cref="H3Index"/> at <paramref name="parentResolution"/>.</returns>
+    /// <exception cref="H3DomainException"><paramref name="parentResolution"/> is outside the range 0-15.</exception>
+    /// <exception cref="H3Exception"><paramref name="parentResolution"/> is finer than this cell's resolution, or the native operation failed.</exception>
+    public H3Index CellToParent(int parentResolution)
     {
-        H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToParent(Value, parentRes, out ulong parent));
+        H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToParent(Value, parentResolution, out ulong parent));
         return new H3Index(parent);
     }
 
     /// <summary>
     /// Returns the center child cell of this cell at the given finer resolution.
     /// </summary>
-    /// <param name="childRes">The target child resolution (0-15); must be greater than or equal to this cell's resolution.</param>
-    /// <returns>The center child <see cref="H3Index"/> at <paramref name="childRes"/>.</returns>
-    /// <exception cref="H3DomainException"><paramref name="childRes"/> is outside the range 0-15.</exception>
-    /// <exception cref="H3Exception"><paramref name="childRes"/> is coarser than this cell's resolution, or the native operation failed.</exception>
-    public H3Index CellToCenterChild(int childRes)
+    /// <param name="childResolution">The target child resolution (0-15); must be greater than or equal to this cell's resolution.</param>
+    /// <returns>The center child <see cref="H3Index"/> at <paramref name="childResolution"/>.</returns>
+    /// <exception cref="H3DomainException"><paramref name="childResolution"/> is outside the range 0-15.</exception>
+    /// <exception cref="H3Exception"><paramref name="childResolution"/> is coarser than this cell's resolution, or the native operation failed.</exception>
+    public H3Index CellToCenterChild(int childResolution)
     {
-        H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToCenterChild(Value, childRes, out ulong child));
+        H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToCenterChild(Value, childResolution, out ulong child));
         return new H3Index(child);
     }
 
@@ -535,13 +536,13 @@ public readonly partial record struct H3Index(ulong Value)
     /// Returns the position of this cell within an ordered traversal of all children
     /// of its parent at the given coarser resolution. Inverse of <see cref="ChildPosToCell"/>.
     /// </summary>
-    /// <param name="parentRes">The parent resolution (0-15); must be less than or equal to this cell's resolution.</param>
-    /// <returns>The zero-based child position of this cell within its parent at <paramref name="parentRes"/>.</returns>
-    /// <exception cref="H3DomainException"><paramref name="parentRes"/> is outside the range 0-15.</exception>
-    /// <exception cref="H3Exception"><paramref name="parentRes"/> is finer than this cell's resolution, or the native operation failed.</exception>
-    public long CellToChildPos(int parentRes)
+    /// <param name="parentResolution">The parent resolution (0-15); must be less than or equal to this cell's resolution.</param>
+    /// <returns>The zero-based child position of this cell within its parent at <paramref name="parentResolution"/>.</returns>
+    /// <exception cref="H3DomainException"><paramref name="parentResolution"/> is outside the range 0-15.</exception>
+    /// <exception cref="H3Exception"><paramref name="parentResolution"/> is finer than this cell's resolution, or the native operation failed.</exception>
+    public long CellToChildPos(int parentResolution)
     {
-        H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToChildPos(Value, parentRes, out long pos));
+        H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToChildPos(Value, parentResolution, out long pos));
         return pos;
     }
 
@@ -549,28 +550,28 @@ public readonly partial record struct H3Index(ulong Value)
     /// Returns the child cell of this (parent) cell at the given child position and
     /// resolution. Inverse of <see cref="CellToChildPos"/>.
     /// </summary>
-    /// <param name="childPos">The zero-based child position, in <c>[0, cellToChildrenSize)</c>.</param>
-    /// <param name="childRes">The child resolution (0-15); must be greater than or equal to this cell's resolution.</param>
-    /// <returns>The child <see cref="H3Index"/> at <paramref name="childPos"/> and <paramref name="childRes"/>.</returns>
-    /// <exception cref="H3DomainException"><paramref name="childRes"/> is outside the range 0-15, or <paramref name="childPos"/> is outside the valid range.</exception>
-    /// <exception cref="H3Exception"><paramref name="childRes"/> is coarser than this cell's resolution, or the native operation failed.</exception>
-    public H3Index ChildPosToCell(long childPos, int childRes)
+    /// <param name="childPosition">The zero-based child position, in <c>[0, cellToChildrenSize)</c>.</param>
+    /// <param name="childResolution">The child resolution (0-15); must be greater than or equal to this cell's resolution.</param>
+    /// <returns>The child <see cref="H3Index"/> at <paramref name="childPosition"/> and <paramref name="childResolution"/>.</returns>
+    /// <exception cref="H3DomainException"><paramref name="childResolution"/> is outside the range 0-15, or <paramref name="childPosition"/> is outside the valid range.</exception>
+    /// <exception cref="H3Exception"><paramref name="childResolution"/> is coarser than this cell's resolution, or the native operation failed.</exception>
+    public H3Index ChildPosToCell(long childPosition, int childResolution)
     {
-        H3ErrorMarshaller.ThrowIfError(NativeMethods.ChildPosToCell(childPos, Value, childRes, out ulong child));
+        H3ErrorMarshaller.ThrowIfError(NativeMethods.ChildPosToCell(childPosition, Value, childResolution, out ulong child));
         return new H3Index(child);
     }
 
     /// <summary>
     /// Returns all child cells of this cell at the given finer resolution.
     /// </summary>
-    /// <param name="childRes">The target child resolution (0-15); must be greater than or equal to this cell's resolution.</param>
+    /// <param name="childResolution">The target child resolution (0-15); must be greater than or equal to this cell's resolution.</param>
     /// <returns>The child cells, with null padding slots removed (pentagon parents yield fewer than the hexagon maximum). Order is not guaranteed.</returns>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="childRes"/> implies a result so large that it would exceed <see cref="Array.MaxLength"/>.</exception>
-    /// <exception cref="H3DomainException"><paramref name="childRes"/> is outside the range 0-15.</exception>
-    /// <exception cref="H3Exception"><paramref name="childRes"/> is coarser than this cell's resolution, or the native operation failed.</exception>
-    public unsafe H3Index[] CellToChildren(int childRes)
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="childResolution"/> implies a result so large that it would exceed <see cref="Array.MaxLength"/>.</exception>
+    /// <exception cref="H3DomainException"><paramref name="childResolution"/> is outside the range 0-15.</exception>
+    /// <exception cref="H3Exception"><paramref name="childResolution"/> is coarser than this cell's resolution, or the native operation failed.</exception>
+    public unsafe H3Index[] CellToChildren(int childResolution)
     {
-        long maxSize = CellToChildrenSize(childRes);
+        long maxSize = CellToChildrenSize(childResolution);
         if (maxSize <= 0)
         {
             return [];
@@ -579,15 +580,15 @@ public readonly partial record struct H3Index(ulong Value)
         if (maxSize > Array.MaxLength)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(childRes),
-                childRes,
-                $"childRes={childRes} would require {maxSize} cells, exceeding the maximum array length.");
+                nameof(childResolution),
+                childResolution,
+                $"childResolution={childResolution} would require {maxSize} cells, exceeding the maximum array length.");
         }
 
         var buffer = new ulong[maxSize];
         fixed (ulong* ptr = buffer)
         {
-            H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToChildren(Value, childRes, ptr));
+            H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToChildren(Value, childResolution, ptr));
         }
 
         int count = 0;
@@ -616,25 +617,25 @@ public readonly partial record struct H3Index(ulong Value)
     /// Fills <paramref name="destination"/> with the child cells of this cell at the
     /// given finer resolution, packing non-null cells to the front.
     /// </summary>
-    /// <param name="childRes">The target child resolution (0-15); must be greater than or equal to this cell's resolution.</param>
+    /// <param name="childResolution">The target child resolution (0-15); must be greater than or equal to this cell's resolution.</param>
     /// <param name="destination">
     /// The destination span. Its length must be at least the maximum child count for
-    /// <paramref name="childRes"/> (see the upstream <c>cellToChildrenSize</c>).
+    /// <paramref name="childResolution"/> (see the upstream <c>cellToChildrenSize</c>).
     /// </param>
     /// <returns>The number of non-null child cells written to the front of <paramref name="destination"/>.</returns>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="childRes"/> implies a result that would exceed <see cref="Array.MaxLength"/>, or <paramref name="destination"/> is too small.</exception>
-    /// <exception cref="H3DomainException"><paramref name="childRes"/> is outside the range 0-15.</exception>
-    /// <exception cref="H3Exception"><paramref name="childRes"/> is coarser than this cell's resolution, or the native operation failed.</exception>
-    public unsafe int CellToChildrenInto(int childRes, Span<H3Index> destination)
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="childResolution"/> implies a result that would exceed <see cref="Array.MaxLength"/>, or <paramref name="destination"/> is too small.</exception>
+    /// <exception cref="H3DomainException"><paramref name="childResolution"/> is outside the range 0-15.</exception>
+    /// <exception cref="H3Exception"><paramref name="childResolution"/> is coarser than this cell's resolution, or the native operation failed.</exception>
+    public unsafe int CellToChildrenInto(int childResolution, Span<H3Index> destination)
     {
-        long maxSize = CellToChildrenSize(childRes);
+        long maxSize = CellToChildrenSize(childResolution);
 
         if (maxSize > Array.MaxLength)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(childRes),
-                childRes,
-                $"childRes={childRes} would require {maxSize} cells, exceeding the maximum array length.");
+                nameof(childResolution),
+                childResolution,
+                $"childResolution={childResolution} would require {maxSize} cells, exceeding the maximum array length.");
         }
 
         if (destination.Length < maxSize)
@@ -642,7 +643,7 @@ public readonly partial record struct H3Index(ulong Value)
             throw new ArgumentOutOfRangeException(
                 nameof(destination),
                 destination.Length,
-                $"Destination span must hold at least {maxSize} elements for childRes={childRes}.");
+                $"Destination span must hold at least {maxSize} elements for childResolution={childResolution}.");
         }
 
         if (maxSize <= 0)
@@ -654,7 +655,7 @@ public readonly partial record struct H3Index(ulong Value)
         // with ulong, so the native fill needs no intermediate buffer.
         fixed (H3Index* ptr = destination)
         {
-            H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToChildren(Value, childRes, (ulong*)ptr));
+            H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToChildren(Value, childResolution, (ulong*)ptr));
         }
 
         // Compact the H3_NULL (0) padding holes in place. The write index never
@@ -773,19 +774,19 @@ public readonly partial record struct H3Index(ulong Value)
     /// uniform resolution. Inverse of <see cref="CompactCells"/>.
     /// </summary>
     /// <param name="cells">The compacted, mixed-resolution cells.</param>
-    /// <param name="res">The target uniform resolution (0-15); must be greater than or equal to the finest resolution present in <paramref name="cells"/>.</param>
-    /// <returns>The uncompacted set of cells, all at <paramref name="res"/>. Order is not guaranteed.</returns>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="res"/> implies a result so large that it would exceed <see cref="Array.MaxLength"/>.</exception>
-    /// <exception cref="H3DomainException"><paramref name="res"/> is outside the range 0-15.</exception>
-    /// <exception cref="H3Exception"><paramref name="res"/> is finer than the input requires, or the native operation failed.</exception>
-    public static unsafe H3Index[] UncompactCells(ReadOnlySpan<H3Index> cells, int res)
+    /// <param name="resolution">The target uniform resolution (0-15); must be greater than or equal to the finest resolution present in <paramref name="cells"/>.</param>
+    /// <returns>The uncompacted set of cells, all at <paramref name="resolution"/>. Order is not guaranteed.</returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="resolution"/> implies a result so large that it would exceed <see cref="Array.MaxLength"/>.</exception>
+    /// <exception cref="H3DomainException"><paramref name="resolution"/> is outside the range 0-15.</exception>
+    /// <exception cref="H3Exception"><paramref name="resolution"/> is finer than the input requires, or the native operation failed.</exception>
+    public static unsafe H3Index[] UncompactCells(ReadOnlySpan<H3Index> cells, int resolution)
     {
         if (cells.Length == 0)
         {
             return [];
         }
 
-        long maxOut = UncompactCellsSize(cells, res);
+        long maxOut = UncompactCellsSize(cells, resolution);
         if (maxOut <= 0)
         {
             return [];
@@ -794,16 +795,16 @@ public readonly partial record struct H3Index(ulong Value)
         if (maxOut > Array.MaxLength)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(res),
-                res,
-                $"res={res} would require {maxOut} cells, exceeding the maximum array length.");
+                nameof(resolution),
+                resolution,
+                $"resolution={resolution} would require {maxOut} cells, exceeding the maximum array length.");
         }
 
         var buffer = new ulong[maxOut];
         fixed (H3Index* inPtr = cells)
         fixed (ulong* outPtr = buffer)
         {
-            H3ErrorMarshaller.ThrowIfError(NativeMethods.UncompactCells((ulong*)inPtr, cells.Length, outPtr, maxOut, res));
+            H3ErrorMarshaller.ThrowIfError(NativeMethods.UncompactCells((ulong*)inPtr, cells.Length, outPtr, maxOut, resolution));
         }
 
         int count = 0;
@@ -834,30 +835,30 @@ public readonly partial record struct H3Index(ulong Value)
     /// of <see cref="CompactCellsInto"/>.
     /// </summary>
     /// <param name="cells">The compacted, mixed-resolution cells.</param>
-    /// <param name="res">The target uniform resolution (0-15); must be greater than or equal to the finest resolution present in <paramref name="cells"/>.</param>
+    /// <param name="resolution">The target uniform resolution (0-15); must be greater than or equal to the finest resolution present in <paramref name="cells"/>.</param>
     /// <param name="destination">
     /// The destination span. Its length must be at least the uncompacted size for
-    /// <paramref name="res"/> (see the upstream <c>uncompactCellsSize</c>).
+    /// <paramref name="resolution"/> (see the upstream <c>uncompactCellsSize</c>).
     /// </param>
     /// <returns>The number of cells written to the front of <paramref name="destination"/>.</returns>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="res"/> implies a result that would exceed <see cref="Array.MaxLength"/>, or <paramref name="destination"/> is too small.</exception>
-    /// <exception cref="H3DomainException"><paramref name="res"/> is outside the range 0-15.</exception>
-    /// <exception cref="H3Exception"><paramref name="res"/> is finer than the input requires, or the native operation failed.</exception>
-    public static unsafe int UncompactCellsInto(ReadOnlySpan<H3Index> cells, int res, Span<H3Index> destination)
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="resolution"/> implies a result that would exceed <see cref="Array.MaxLength"/>, or <paramref name="destination"/> is too small.</exception>
+    /// <exception cref="H3DomainException"><paramref name="resolution"/> is outside the range 0-15.</exception>
+    /// <exception cref="H3Exception"><paramref name="resolution"/> is finer than the input requires, or the native operation failed.</exception>
+    public static unsafe int UncompactCellsInto(ReadOnlySpan<H3Index> cells, int resolution, Span<H3Index> destination)
     {
         if (cells.Length == 0)
         {
             return 0;
         }
 
-        long maxOut = UncompactCellsSize(cells, res);
+        long maxOut = UncompactCellsSize(cells, resolution);
 
         if (maxOut > Array.MaxLength)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(res),
-                res,
-                $"res={res} would require {maxOut} cells, exceeding the maximum array length.");
+                nameof(resolution),
+                resolution,
+                $"resolution={resolution} would require {maxOut} cells, exceeding the maximum array length.");
         }
 
         if (destination.Length < maxOut)
@@ -865,7 +866,7 @@ public readonly partial record struct H3Index(ulong Value)
             throw new ArgumentOutOfRangeException(
                 nameof(destination),
                 destination.Length,
-                $"Destination span must hold at least {maxOut} elements for res={res}.");
+                $"Destination span must hold at least {maxOut} elements for resolution={resolution}.");
         }
 
         if (maxOut <= 0)
@@ -876,7 +877,7 @@ public readonly partial record struct H3Index(ulong Value)
         fixed (H3Index* inPtr = cells)
         fixed (H3Index* outPtr = destination)
         {
-            H3ErrorMarshaller.ThrowIfError(NativeMethods.UncompactCells((ulong*)inPtr, cells.Length, (ulong*)outPtr, maxOut, res));
+            H3ErrorMarshaller.ThrowIfError(NativeMethods.UncompactCells((ulong*)inPtr, cells.Length, (ulong*)outPtr, maxOut, resolution));
         }
 
         // Compact the H3_NULL (0) padding holes in place. The native body fills the
@@ -905,7 +906,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// <param name="k">The grid distance (ring radius); must be non-negative.</param>
     /// <returns>The cells on the ring, with null padding slots removed (pentagon distortion can leave holes). Order is not guaranteed.</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="k"/> is negative, or so large that the result would exceed <see cref="Array.MaxLength"/>.</exception>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     /// <exception cref="H3Exception">The native operation failed.</exception>
     public unsafe H3Index[] GridRing(int k)
     {
@@ -965,7 +966,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// </param>
     /// <returns>The number of non-null cells written to the front of <paramref name="destination"/>.</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="k"/> is negative, so large that the result would exceed <see cref="Array.MaxLength"/>, or <paramref name="destination"/> is too small.</exception>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     /// <exception cref="H3Exception">The native operation failed.</exception>
     public unsafe int GridRingInto(int k, Span<H3Index> destination)
     {
@@ -1112,7 +1113,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// </summary>
     /// <param name="other">The other cell; must be the same resolution as this cell.</param>
     /// <returns>The grid distance between the two cells.</returns>
-    /// <exception cref="H3InvalidCellException">Either cell is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">Either cell is not a valid H3 cell.</exception>
     /// <exception cref="H3Exception">The cells are different resolutions, are too far apart, or pentagon distortion prevents a finite distance.</exception>
     public long GridDistance(H3Index other)
     {
@@ -1130,7 +1131,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// Local IJ coordinates are only meaningful relative to this origin and are not
     /// guaranteed to be defined across pentagons or the antimeridian.
     /// </remarks>
-    /// <exception cref="H3InvalidCellException">Either cell is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">Either cell is not a valid H3 cell.</exception>
     /// <exception cref="H3Exception">The cells are different resolutions, <paramref name="target"/> is too far from the origin, or pentagon distortion prevents a local coordinate.</exception>
     public CoordIJ CellToLocalIJ(H3Index target)
     {
@@ -1149,7 +1150,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// This is the inverse of <see cref="CellToLocalIJ"/>, but the round trip is not
     /// guaranteed invertible near pentagons or the antimeridian.
     /// </remarks>
-    /// <exception cref="H3InvalidCellException">This origin is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This origin is not a valid H3 cell.</exception>
     /// <exception cref="H3Exception">The IJ coordinates do not resolve to a cell near this origin.</exception>
     public H3Index LocalIJToCell(CoordIJ ij)
     {
@@ -1339,13 +1340,13 @@ public readonly partial record struct H3Index(ulong Value)
     /// Returns the directed edges originating at this cell, one per adjacent neighbor.
     /// </summary>
     /// <returns>The directed edges (6 for a hexagon, 5 for a pentagon). Order is not guaranteed.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     /// <exception cref="H3Exception">The native operation failed.</exception>
     public unsafe H3DirectedEdge[] GetDirectedEdges()
     {
         // Native originToDirectedEdges does not validate its origin (it merely bit-flips the
         // mode/reserved bits and always returns E_SUCCESS), so guard here to honor the
-        // documented H3InvalidCellException, mirroring GetIcosahedronFaces.
+        // documented H3InvalidIndexException, mirroring GetIcosahedronFaces.
         EnsureValidCell();
 
         // Fixed-capacity 6 (M4): `stackalloc` is CLR zero-initialized, so the pentagon's
@@ -1385,7 +1386,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// <param name="destination">The destination span. Its length must be at least 6 (the per-cell maximum).</param>
     /// <returns>The number of directed edges written to the front of <paramref name="destination"/> (6 for a hexagon, 5 for a pentagon).</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="destination"/> is too small.</exception>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     /// <exception cref="H3Exception">The native operation failed.</exception>
     public unsafe int GetDirectedEdgesInto(Span<H3DirectedEdge> destination)
     {
@@ -1399,7 +1400,7 @@ public readonly partial record struct H3Index(ulong Value)
 
         // Native originToDirectedEdges does not validate its origin (it always returns
         // E_SUCCESS), so guard the receiver after the caller-arg check to honor the
-        // documented H3InvalidCellException, mirroring GetIcosahedronFaces.
+        // documented H3InvalidIndexException, mirroring GetIcosahedronFaces.
         EnsureValidCell();
 
         // Native originToDirectedEdges does NOT guarantee zero-padding the pentagon hole,
@@ -1434,18 +1435,18 @@ public readonly partial record struct H3Index(ulong Value)
     /// <summary>
     /// Returns one of the topological vertices of this cell.
     /// </summary>
-    /// <param name="vertexNum">The vertex number (0-5 for hexagons, 0-4 for pentagons).</param>
+    /// <param name="vertexNumber">The vertex number (0-5 for hexagons, 0-4 for pentagons).</param>
     /// <returns>The requested <see cref="H3Vertex"/>.</returns>
-    /// <exception cref="H3DomainException"><paramref name="vertexNum"/> is out of range for this cell.</exception>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
-    public H3Vertex GetVertex(int vertexNum)
+    /// <exception cref="H3DomainException"><paramref name="vertexNumber"/> is out of range for this cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
+    public H3Vertex GetVertex(int vertexNumber)
     {
         // Native cellToVertex does NOT validate its origin: an invalid cell may return
         // E_SUCCESS with a garbage vertex or E_FAILED (not E_CELL_INVALID), so guard the
-        // receiver here to honor the documented H3InvalidCellException, mirroring
-        // GetVertexes. vertexNum is left to native (E_DOMAIN) and is NOT pre-clamped.
+        // receiver here to honor the documented H3InvalidIndexException, mirroring
+        // GetVertexes. vertexNumber is left to native (E_DOMAIN) and is NOT pre-clamped.
         EnsureValidCell();
-        H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToVertex(Value, vertexNum, out ulong v));
+        H3ErrorMarshaller.ThrowIfError(NativeMethods.CellToVertex(Value, vertexNumber, out ulong v));
         return new H3Vertex(v);
     }
 
@@ -1453,12 +1454,12 @@ public readonly partial record struct H3Index(ulong Value)
     /// Returns the topological vertices of this cell.
     /// </summary>
     /// <returns>The vertices (6 for a hexagon, 5 for a pentagon). Order is not guaranteed.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     /// <exception cref="H3Exception">The native operation failed.</exception>
     public unsafe H3Vertex[] GetVertexes()
     {
         // Native cellToVertexes does not validate its origin, so guard here to honor the
-        // documented H3InvalidCellException, mirroring GetDirectedEdges.
+        // documented H3InvalidIndexException, mirroring GetDirectedEdges.
         EnsureValidCell();
 
         // Fixed-capacity 6 (M4): `stackalloc` is CLR zero-initialized, so the pentagon's
@@ -1498,7 +1499,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// <param name="destination">The destination span. Its length must be at least 6 (the per-cell maximum).</param>
     /// <returns>The number of vertices written to the front of <paramref name="destination"/> (6 for a hexagon, 5 for a pentagon).</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="destination"/> is too small.</exception>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     /// <exception cref="H3Exception">The native operation failed.</exception>
     public unsafe int GetVertexesInto(Span<H3Vertex> destination)
     {
@@ -1511,7 +1512,7 @@ public readonly partial record struct H3Index(ulong Value)
         }
 
         // Native cellToVertexes does not validate its origin, so guard the receiver after
-        // the caller-arg check to honor the documented H3InvalidCellException, mirroring
+        // the caller-arg check to honor the documented H3InvalidIndexException, mirroring
         // GetDirectedEdgesInto.
         EnsureValidCell();
 
@@ -1548,13 +1549,13 @@ public readonly partial record struct H3Index(ulong Value)
     /// Returns the area of this cell in steradians (square radians).
     /// </summary>
     /// <returns>The cell area in steradians.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     public double CellAreaRads2()
     {
         // Native cellAreaRads2 -> cellToBoundary -> _h3ToFaceIjk only rejects an
         // out-of-range base cell (>= NUM_BASE_CELLS); it returns E_SUCCESS with a
         // garbage area for most invalid cells (H3_NULL, wrong mode, deleted digits).
-        // Validate-first to honor the documented H3InvalidCellException.
+        // Validate-first to honor the documented H3InvalidIndexException.
         EnsureValidCell();
         H3ErrorMarshaller.ThrowIfError(NativeMethods.CellAreaRads2(Value, out double area));
         return area;
@@ -1564,7 +1565,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// Returns the area of this cell in square kilometers.
     /// </summary>
     /// <returns>The cell area in square kilometers.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     public double CellAreaKm2()
     {
         // Native does not fully validate the cell (see CellAreaRads2); validate-first.
@@ -1577,7 +1578,7 @@ public readonly partial record struct H3Index(ulong Value)
     /// Returns the area of this cell in square meters.
     /// </summary>
     /// <returns>The cell area in square meters.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 cell.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 cell.</exception>
     public double CellAreaM2()
     {
         // Native does not fully validate the cell (see CellAreaRads2); validate-first.
@@ -1796,9 +1797,9 @@ public readonly partial record struct H3Index(ulong Value)
 
     private void EnsureValidCell()
     {
-        if (!IsValidCell)
+        if (!IsValidCell())
         {
-            throw new H3InvalidCellException(
+            throw new H3InvalidIndexException(
                 (uint)H3ErrorCode.CellInvalid,
                 $"0x{Value:x16} is not a valid H3 cell.");
         }

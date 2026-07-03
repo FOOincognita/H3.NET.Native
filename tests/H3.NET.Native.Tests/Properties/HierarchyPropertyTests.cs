@@ -19,7 +19,7 @@ public sealed class HierarchyPropertyTests
     /// <summary>High-entropy invalid-index generator, identical in spirit to the inspection suite.</summary>
     private static readonly Gen<ulong> InvalidIndexGen =
         Gen.Frequency((9, Gen.ULong), (1, Gen.ULong[1UL, 0xFUL]))
-            .Where(v => !new H3Index(v).IsValidCell);
+            .Where(v => !new H3Index(v).IsValidCell());
 
     [Fact]
     public void CellToChildren_HasExpectedSize_AndEveryChildMapsBackToParent()

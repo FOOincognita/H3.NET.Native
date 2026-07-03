@@ -23,7 +23,7 @@ public sealed class InspectionPropertyTests
     /// </summary>
     private static readonly Gen<ulong> InvalidIndexGen =
         Gen.Frequency((9, Gen.ULong), (1, Gen.ULong[1UL, 0xFUL]))
-            .Where(v => !new H3Index(v).IsValidCell);
+            .Where(v => !new H3Index(v).IsValidCell());
 
     [Fact]
     public void BaseCellNumber_OnInvalidIndex_ThrowsTyped_OrReturns()
@@ -97,8 +97,8 @@ public sealed class InspectionPropertyTests
             raw =>
             {
                 var cell = new H3Index(raw);
-                bool validIndex = cell.IsValidIndex;
-                if (cell.IsValidCell)
+                bool validIndex = cell.IsValidIndex();
+                if (cell.IsValidCell())
                 {
                     Assert.True(validIndex);
                 }

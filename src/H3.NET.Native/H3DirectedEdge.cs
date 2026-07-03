@@ -21,31 +21,25 @@ public readonly record struct H3DirectedEdge(ulong Value)
     public bool IsNull => Value == 0;
 
     /// <summary>
-    /// Gets the origin cell of this directed edge.
+    /// Returns the origin cell of this directed edge.
     /// </summary>
     /// <returns>The origin <see cref="H3Index"/> cell.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid directed edge.</exception>
-    public H3Index Origin
+    /// <exception cref="H3InvalidIndexException">This is not a valid directed edge.</exception>
+    public H3Index GetOrigin()
     {
-        get
-        {
-            H3ErrorMarshaller.ThrowIfError(NativeMethods.GetDirectedEdgeOrigin(Value, out ulong cell));
-            return new H3Index(cell);
-        }
+        H3ErrorMarshaller.ThrowIfError(NativeMethods.GetDirectedEdgeOrigin(Value, out ulong cell));
+        return new H3Index(cell);
     }
 
     /// <summary>
-    /// Gets the destination cell of this directed edge.
+    /// Returns the destination cell of this directed edge.
     /// </summary>
     /// <returns>The destination <see cref="H3Index"/> cell.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid directed edge.</exception>
-    public H3Index Destination
+    /// <exception cref="H3InvalidIndexException">This is not a valid directed edge.</exception>
+    public H3Index GetDestination()
     {
-        get
-        {
-            H3ErrorMarshaller.ThrowIfError(NativeMethods.GetDirectedEdgeDestination(Value, out ulong cell));
-            return new H3Index(cell);
-        }
+        H3ErrorMarshaller.ThrowIfError(NativeMethods.GetDirectedEdgeDestination(Value, out ulong cell));
+        return new H3Index(cell);
     }
 
     /// <summary>
@@ -67,7 +61,7 @@ public readonly record struct H3DirectedEdge(ulong Value)
     /// Returns the origin and destination cells of this directed edge.
     /// </summary>
     /// <returns>A tuple of the origin and destination <see cref="H3Index"/> cells.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid directed edge.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid directed edge.</exception>
     public unsafe (H3Index Origin, H3Index Destination) ToCells()
     {
         // Constant-size 2 (M2): native writes both slots (out[0]=origin, out[1]=destination),
@@ -89,7 +83,7 @@ public readonly record struct H3DirectedEdge(ulong Value)
     /// The boundary vertices, in degrees (usually 2, more when the edge crosses an
     /// icosahedron face). The result may straddle the antimeridian and is not normalized.
     /// </returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid directed edge.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid directed edge.</exception>
     public IReadOnlyList<LatLng> ToBoundary()
     {
         H3ErrorMarshaller.ThrowIfError(NativeMethods.DirectedEdgeToBoundary(Value, out CellBoundary boundary));
@@ -109,7 +103,7 @@ public readonly record struct H3DirectedEdge(ulong Value)
     /// destination back to its origin).
     /// </summary>
     /// <returns>The reversed <see cref="H3DirectedEdge"/>.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid directed edge.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid directed edge.</exception>
     public H3DirectedEdge Reverse()
     {
         H3ErrorMarshaller.ThrowIfError(NativeMethods.ReverseDirectedEdge(Value, out ulong edge));
@@ -120,7 +114,7 @@ public readonly record struct H3DirectedEdge(ulong Value)
     /// Returns the length of this directed edge in radians.
     /// </summary>
     /// <returns>The edge length in radians.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid directed edge.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid directed edge.</exception>
     public double EdgeLengthRads()
     {
         // Native edgeLengthRads -> directedEdgeToBoundary validates the edge mode and
@@ -136,7 +130,7 @@ public readonly record struct H3DirectedEdge(ulong Value)
     /// Returns the length of this directed edge in kilometers.
     /// </summary>
     /// <returns>The edge length in kilometers.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid directed edge.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid directed edge.</exception>
     public double EdgeLengthKm()
     {
         // Native does not fully validate the edge origin (see EdgeLengthRads); validate-first.
@@ -149,7 +143,7 @@ public readonly record struct H3DirectedEdge(ulong Value)
     /// Returns the length of this directed edge in meters.
     /// </summary>
     /// <returns>The edge length in meters.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid directed edge.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid directed edge.</exception>
     public double EdgeLengthM()
     {
         // Native does not fully validate the edge origin (see EdgeLengthRads); validate-first.
@@ -163,7 +157,7 @@ public readonly record struct H3DirectedEdge(ulong Value)
     /// </summary>
     /// <param name="origin">The origin <see cref="H3Index"/> cell.</param>
     /// <param name="destination">The destination <see cref="H3Index"/> cell.</param>
-    /// <exception cref="H3InvalidCellException">This is not a valid directed edge.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid directed edge.</exception>
     public void Deconstruct(out H3Index origin, out H3Index destination)
     {
         (origin, destination) = ToCells();
@@ -173,7 +167,7 @@ public readonly record struct H3DirectedEdge(ulong Value)
     {
         if (!IsValid())
         {
-            throw new H3InvalidCellException(
+            throw new H3InvalidIndexException(
                 (uint)H3ErrorCode.DirEdgeInvalid,
                 $"0x{Value:x16} is not a valid H3 directed edge.");
         }

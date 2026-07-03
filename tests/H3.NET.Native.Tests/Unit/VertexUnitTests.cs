@@ -14,8 +14,8 @@ namespace H3.NET.Native.Tests.Unit;
 /// Each member is exercised on its happy path plus every documented guard / error arm:
 /// the E_DOMAIN (2) channel raised when vertexNum is out of range for the cell (a
 /// hexagon's 6th index or a pentagon's 5th index, which must NOT be silently clamped),
-/// the E_CELL_INVALID (5) -&gt; H3InvalidCellException raised when a vertex operation runs
-/// on a bogus origin cell, the E_VERTEX_INVALID (8) -&gt; H3InvalidCellException raised when
+/// the E_CELL_INVALID (5) -&gt; H3InvalidIndexException raised when a vertex operation runs
+/// on a bogus origin cell, the E_VERTEX_INVALID (8) -&gt; H3InvalidIndexException raised when
 /// a projection runs on a bogus vertex, the bare-int IsValid never-throws contract, the
 /// M4 fixed-capacity-6 strip (hexagon = 6, pentagon = 5 with the H3_NULL hole stripped),
 /// the *Into destination-length guard, the pre-clear of stale caller data, and a
@@ -24,8 +24,8 @@ namespace H3.NET.Native.Tests.Unit;
 /// Error codes pinned against libh3 4.5.0 (the binding faithfully surfaces the raw native
 /// channel): cellToVertex with an out-of-range vertexNum -&gt; E_DOMAIN (2) -&gt;
 /// H3DomainException; vertexToLatLng on an invalid vertex -&gt; E_VERTEX_INVALID (8) -&gt;
-/// H3InvalidCellException; the receiver guard on an invalid origin cell -&gt;
-/// E_CELL_INVALID (5) -&gt; H3InvalidCellException.
+/// H3InvalidIndexException; the receiver guard on an invalid origin cell -&gt;
+/// E_CELL_INVALID (5) -&gt; H3InvalidIndexException.
 /// </summary>
 public sealed class VertexUnitTests
 {
@@ -118,13 +118,13 @@ public sealed class VertexUnitTests
     [Fact]
     public void GetVertex_OnNull_ThrowsH3InvalidCell()
     {
-        Assert.Throws<H3InvalidCellException>(() => H3Index.Null.GetVertex(0));
+        Assert.Throws<H3InvalidIndexException>(() => H3Index.Null.GetVertex(0));
     }
 
     [Fact]
     public void GetVertex_OnInvalidIndex_ThrowsH3InvalidCell()
     {
-        Assert.Throws<H3InvalidCellException>(() => new H3Index(0xffffffffffffffffUL).GetVertex(0));
+        Assert.Throws<H3InvalidIndexException>(() => new H3Index(0xffffffffffffffffUL).GetVertex(0));
     }
 
     // ---- (2) GetVertexes ---------------------------------------------------
@@ -156,13 +156,13 @@ public sealed class VertexUnitTests
     [Fact]
     public void GetVertexes_OnNull_ThrowsH3InvalidCell()
     {
-        Assert.Throws<H3InvalidCellException>(() => H3Index.Null.GetVertexes());
+        Assert.Throws<H3InvalidIndexException>(() => H3Index.Null.GetVertexes());
     }
 
     [Fact]
     public void GetVertexes_OnInvalidIndex_ThrowsH3InvalidCell()
     {
-        Assert.Throws<H3InvalidCellException>(() => new H3Index(0xffffffffffffffffUL).GetVertexes());
+        Assert.Throws<H3InvalidIndexException>(() => new H3Index(0xffffffffffffffffUL).GetVertexes());
     }
 
     // ---- (3) GetVertexesInto -----------------------------------------------
@@ -229,7 +229,7 @@ public sealed class VertexUnitTests
     {
         // A valid-length span plus an invalid origin must still surface the cell exception
         // (the arg check passes, the receiver guard fires).
-        Assert.Throws<H3InvalidCellException>(
+        Assert.Throws<H3InvalidIndexException>(
             () => new H3Index(0xffffffffffffffffUL).GetVertexesInto(new H3Vertex[MaxVertexCount]));
     }
 
@@ -251,14 +251,14 @@ public sealed class VertexUnitTests
     public void ToLatLng_OnJunkVertex_ThrowsH3InvalidCell_VertexInvalid()
     {
         // EnsureValidVertex fires before the H3Error channel; the code pins E_VERTEX_INVALID.
-        var ex = Assert.Throws<H3InvalidCellException>(() => new H3Vertex(JunkVertex).ToLatLng());
+        var ex = Assert.Throws<H3InvalidIndexException>(() => new H3Vertex(JunkVertex).ToLatLng());
         Assert.Equal(VertexInvalidErrorCode, ex.ErrorCode);
     }
 
     [Fact]
     public void ToLatLng_OnNull_ThrowsH3InvalidCell_VertexInvalid()
     {
-        var ex = Assert.Throws<H3InvalidCellException>(() => H3Vertex.Null.ToLatLng());
+        var ex = Assert.Throws<H3InvalidIndexException>(() => H3Vertex.Null.ToLatLng());
         Assert.Equal(VertexInvalidErrorCode, ex.ErrorCode);
     }
 

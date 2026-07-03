@@ -52,13 +52,13 @@ public sealed class IndexInspectionUnitTests
     [MemberData(nameof(InvalidIndices))]
     public void BaseCellNumber_OnInvalidIndex_Throws(ulong raw)
     {
-        Assert.Throws<H3InvalidCellException>(() => _ = new H3Index(raw).BaseCellNumber);
+        Assert.Throws<H3InvalidIndexException>(() => _ = new H3Index(raw).BaseCellNumber);
     }
 
     [Fact]
     public void BaseCellNumber_OnNull_Throws()
     {
-        Assert.Throws<H3InvalidCellException>(() => _ = H3Index.Null.BaseCellNumber);
+        Assert.Throws<H3InvalidIndexException>(() => _ = H3Index.Null.BaseCellNumber);
     }
 
     // ---- IsResClassIII -----------------------------------------------------
@@ -75,13 +75,13 @@ public sealed class IndexInspectionUnitTests
     [MemberData(nameof(InvalidIndices))]
     public void IsResClassIII_OnInvalidIndex_Throws(ulong raw)
     {
-        Assert.Throws<H3InvalidCellException>(() => _ = new H3Index(raw).IsResClassIII);
+        Assert.Throws<H3InvalidIndexException>(() => _ = new H3Index(raw).IsResClassIII);
     }
 
     [Fact]
     public void IsResClassIII_OnNull_Throws()
     {
-        Assert.Throws<H3InvalidCellException>(() => _ = H3Index.Null.IsResClassIII);
+        Assert.Throws<H3InvalidIndexException>(() => _ = H3Index.Null.IsResClassIII);
     }
 
     // ---- IsValidIndex ------------------------------------------------------
@@ -93,8 +93,8 @@ public sealed class IndexInspectionUnitTests
         var cell = H3Index.Parse(hex);
 
         // Superset relationship: a valid cell is always a valid index.
-        Assert.True(cell.IsValidCell);
-        Assert.True(cell.IsValidIndex);
+        Assert.True(cell.IsValidCell());
+        Assert.True(cell.IsValidIndex());
     }
 
     [Theory]
@@ -103,13 +103,13 @@ public sealed class IndexInspectionUnitTests
     {
         // Mirrors the IsValidCell contract: a pure predicate that never throws.
         var cell = new H3Index(raw);
-        _ = cell.IsValidIndex;
+        _ = cell.IsValidIndex();
     }
 
     [Fact]
     public void IsValidIndex_OnNull_IsFalse_AndDoesNotThrow()
     {
-        Assert.False(H3Index.Null.IsValidIndex);
+        Assert.False(H3Index.Null.IsValidIndex());
     }
 
     // ---- GetIndexDigit -----------------------------------------------------

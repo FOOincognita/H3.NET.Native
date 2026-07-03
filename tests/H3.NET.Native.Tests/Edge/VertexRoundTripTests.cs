@@ -56,7 +56,7 @@ public sealed class VertexRoundTripTests
     {
         Assert.True(H3Vertex.Null.IsNull);
         Assert.False(H3Vertex.Null.IsValid());
-        Assert.Throws<H3InvalidCellException>(() => H3Vertex.Null.ToLatLng());
+        Assert.Throws<H3InvalidIndexException>(() => H3Vertex.Null.ToLatLng());
     }
 
     [Theory]

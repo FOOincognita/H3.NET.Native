@@ -106,8 +106,8 @@ public sealed class DirectedEdgeTests
         var oracle = AllEdges[index];
         var edge = new H3DirectedEdge(H3Index.Parse(oracle.Edge).Value);
 
-        Assert.Equal(H3Index.Parse(oracle.Origin), edge.Origin);
-        Assert.Equal(H3Index.Parse(oracle.Destination), edge.Destination);
+        Assert.Equal(H3Index.Parse(oracle.Origin), edge.GetOrigin());
+        Assert.Equal(H3Index.Parse(oracle.Destination), edge.GetDestination());
         Assert.Equal(new H3DirectedEdge(H3Index.Parse(oracle.Reverse).Value), edge.Reverse());
     }
 

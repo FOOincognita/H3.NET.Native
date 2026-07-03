@@ -55,8 +55,8 @@ public sealed class DirectedEdgePropertyTests
                     Assert.Equal(edge, edge.Reverse().Reverse());
 
                     var reversed = edge.Reverse();
-                    Assert.Equal(edge.Origin, reversed.Destination);
-                    Assert.Equal(edge.Destination, reversed.Origin);
+                    Assert.Equal(edge.GetOrigin(), reversed.GetDestination());
+                    Assert.Equal(edge.GetDestination(), reversed.GetOrigin());
                 }
             },
             iter: Iterations);
@@ -103,8 +103,8 @@ public sealed class DirectedEdgePropertyTests
                 Assert.All(edges, e =>
                 {
                     Assert.True(e.IsValid());
-                    Assert.Equal(origin, e.Origin);
-                    Assert.True(origin.IsNeighbor(e.Destination));
+                    Assert.Equal(origin, e.GetOrigin());
+                    Assert.True(origin.IsNeighbor(e.GetDestination()));
                 });
             },
             iter: Iterations);

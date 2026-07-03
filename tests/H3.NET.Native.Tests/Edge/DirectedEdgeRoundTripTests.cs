@@ -35,8 +35,8 @@ public sealed class DirectedEdgeRoundTripTests
             Assert.Equal(neighbor, d);
 
             // Origin / Destination must agree with ToCells.
-            Assert.Equal(o, edge.Origin);
-            Assert.Equal(d, edge.Destination);
+            Assert.Equal(o, edge.GetOrigin());
+            Assert.Equal(d, edge.GetDestination());
         }
     }
 
@@ -65,8 +65,8 @@ public sealed class DirectedEdgeRoundTripTests
 
             // A single reverse swaps the endpoints.
             var reversed = edge.Reverse();
-            Assert.Equal(edge.Origin, reversed.Destination);
-            Assert.Equal(edge.Destination, reversed.Origin);
+            Assert.Equal(edge.GetOrigin(), reversed.GetDestination());
+            Assert.Equal(edge.GetDestination(), reversed.GetOrigin());
         }
     }
 
@@ -79,8 +79,8 @@ public sealed class DirectedEdgeRoundTripTests
         foreach (var edge in origin.GetDirectedEdges())
         {
             Assert.True(edge.IsValid());
-            Assert.Equal(origin, edge.Origin);
-            Assert.True(origin.IsNeighbor(edge.Destination));
+            Assert.Equal(origin, edge.GetOrigin());
+            Assert.True(origin.IsNeighbor(edge.GetDestination()));
         }
     }
 }

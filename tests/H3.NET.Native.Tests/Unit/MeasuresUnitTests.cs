@@ -19,10 +19,10 @@ namespace H3.NET.Native.Tests.Unit;
 /// Each member is exercised on its happy path plus every documented guard / error arm.
 /// Error codes pinned against libh3 4.5.0 (the binding faithfully surfaces the raw native
 /// channel, or the validate-first guard pins the code itself): an invalid cell handed to a
-/// cell-area method -&gt; H3InvalidCellException with E_CELL_INVALID (5) raised by the
+/// cell-area method -&gt; H3InvalidIndexException with E_CELL_INVALID (5) raised by the
 /// EnsureValidCell guard; an out-of-range resolution -&gt; H3DomainException with
 /// E_RES_DOMAIN (4); an invalid directed edge handed to an edge-length method -&gt;
-/// H3InvalidCellException with E_DIR_EDGE_INVALID (6) raised by the EnsureValid guard.
+/// H3InvalidIndexException with E_DIR_EDGE_INVALID (6) raised by the EnsureValid guard.
 /// The bare-double GreatCircleDistance* and DegsToRads / RadsToDegs never throw.
 /// </summary>
 public sealed class MeasuresUnitTests
@@ -109,30 +109,30 @@ public sealed class MeasuresUnitTests
     [Fact]
     public void CellAreaRads2_OnInvalidCell_ThrowsH3InvalidCell_CellInvalid()
     {
-        var ex = Assert.Throws<H3InvalidCellException>(() => new H3Index(InvalidCell).CellAreaRads2());
+        var ex = Assert.Throws<H3InvalidIndexException>(() => new H3Index(InvalidCell).CellAreaRads2());
         Assert.Equal(CellInvalidErrorCode, ex.ErrorCode);
     }
 
     [Fact]
     public void CellAreaKm2_OnInvalidCell_ThrowsH3InvalidCell_CellInvalid()
     {
-        var ex = Assert.Throws<H3InvalidCellException>(() => new H3Index(InvalidCell).CellAreaKm2());
+        var ex = Assert.Throws<H3InvalidIndexException>(() => new H3Index(InvalidCell).CellAreaKm2());
         Assert.Equal(CellInvalidErrorCode, ex.ErrorCode);
     }
 
     [Fact]
     public void CellAreaM2_OnInvalidCell_ThrowsH3InvalidCell_CellInvalid()
     {
-        var ex = Assert.Throws<H3InvalidCellException>(() => new H3Index(InvalidCell).CellAreaM2());
+        var ex = Assert.Throws<H3InvalidIndexException>(() => new H3Index(InvalidCell).CellAreaM2());
         Assert.Equal(CellInvalidErrorCode, ex.ErrorCode);
     }
 
     [Fact]
     public void CellArea_OnNull_ThrowsH3InvalidCell()
     {
-        Assert.Throws<H3InvalidCellException>(() => H3Index.Null.CellAreaRads2());
-        Assert.Throws<H3InvalidCellException>(() => H3Index.Null.CellAreaKm2());
-        Assert.Throws<H3InvalidCellException>(() => H3Index.Null.CellAreaM2());
+        Assert.Throws<H3InvalidIndexException>(() => H3Index.Null.CellAreaRads2());
+        Assert.Throws<H3InvalidIndexException>(() => H3Index.Null.CellAreaKm2());
+        Assert.Throws<H3InvalidIndexException>(() => H3Index.Null.CellAreaM2());
     }
 
     // ---- (2) Average hexagon area / edge length ----------------------------
@@ -291,7 +291,7 @@ public sealed class MeasuresUnitTests
     public void EdgeLengthRads_OnJunkEdge_ThrowsH3InvalidCell_DirEdgeInvalid()
     {
         // 0xdeadbeef is not a directed edge; the EnsureValid guard pins E_DIR_EDGE_INVALID.
-        var ex = Assert.Throws<H3InvalidCellException>(() => new H3DirectedEdge(0xdeadbeefUL).EdgeLengthRads());
+        var ex = Assert.Throws<H3InvalidIndexException>(() => new H3DirectedEdge(0xdeadbeefUL).EdgeLengthRads());
         Assert.Equal(DirEdgeInvalidErrorCode, ex.ErrorCode);
     }
 
@@ -299,23 +299,23 @@ public sealed class MeasuresUnitTests
     public void EdgeLengthKm_OnCellValueAsEdge_ThrowsH3InvalidCell_DirEdgeInvalid()
     {
         // A valid CELL value is not a valid directed-edge value (wrong mode bits).
-        var ex = Assert.Throws<H3InvalidCellException>(() => new H3DirectedEdge(SfCell.Value).EdgeLengthKm());
+        var ex = Assert.Throws<H3InvalidIndexException>(() => new H3DirectedEdge(SfCell.Value).EdgeLengthKm());
         Assert.Equal(DirEdgeInvalidErrorCode, ex.ErrorCode);
     }
 
     [Fact]
     public void EdgeLengthM_OnCellValueAsEdge_ThrowsH3InvalidCell_DirEdgeInvalid()
     {
-        var ex = Assert.Throws<H3InvalidCellException>(() => new H3DirectedEdge(SfCell.Value).EdgeLengthM());
+        var ex = Assert.Throws<H3InvalidIndexException>(() => new H3DirectedEdge(SfCell.Value).EdgeLengthM());
         Assert.Equal(DirEdgeInvalidErrorCode, ex.ErrorCode);
     }
 
     [Fact]
     public void EdgeLength_OnNull_ThrowsH3InvalidCell()
     {
-        Assert.Throws<H3InvalidCellException>(() => H3DirectedEdge.Null.EdgeLengthRads());
-        Assert.Throws<H3InvalidCellException>(() => H3DirectedEdge.Null.EdgeLengthKm());
-        Assert.Throws<H3InvalidCellException>(() => H3DirectedEdge.Null.EdgeLengthM());
+        Assert.Throws<H3InvalidIndexException>(() => H3DirectedEdge.Null.EdgeLengthRads());
+        Assert.Throws<H3InvalidIndexException>(() => H3DirectedEdge.Null.EdgeLengthKm());
+        Assert.Throws<H3InvalidIndexException>(() => H3DirectedEdge.Null.EdgeLengthM());
     }
 
     private static readonly ulong[] JunkEdges =
@@ -442,7 +442,7 @@ public sealed class MeasuresUnitTests
         Assert.Equal(Res0CellCount, cells.Length);
         Assert.All(cells, c =>
         {
-            Assert.True(c.IsValidCell);
+            Assert.True(c.IsValidCell());
             Assert.Equal(0, c.Resolution);
         });
     }

@@ -17,15 +17,15 @@ H3.NET.Native.GeoPolygon.GeoPolygon(System.Collections.Generic.IReadOnlyList<H3.
 H3.NET.Native.GeoPolygon.Holes.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<H3.NET.Native.LatLng>!>!
 H3.NET.Native.H3DirectedEdge
 H3.NET.Native.H3DirectedEdge.Deconstruct(out H3.NET.Native.H3Index origin, out H3.NET.Native.H3Index destination) -> void
-H3.NET.Native.H3DirectedEdge.Destination.get -> H3.NET.Native.H3Index
 H3.NET.Native.H3DirectedEdge.EdgeLengthKm() -> double
 H3.NET.Native.H3DirectedEdge.EdgeLengthM() -> double
 H3.NET.Native.H3DirectedEdge.EdgeLengthRads() -> double
+H3.NET.Native.H3DirectedEdge.GetDestination() -> H3.NET.Native.H3Index
+H3.NET.Native.H3DirectedEdge.GetOrigin() -> H3.NET.Native.H3Index
 H3.NET.Native.H3DirectedEdge.H3DirectedEdge() -> void
 H3.NET.Native.H3DirectedEdge.H3DirectedEdge(ulong Value) -> void
 H3.NET.Native.H3DirectedEdge.IsNull.get -> bool
 H3.NET.Native.H3DirectedEdge.IsValid() -> bool
-H3.NET.Native.H3DirectedEdge.Origin.get -> H3.NET.Native.H3Index
 H3.NET.Native.H3DirectedEdge.Reverse() -> H3.NET.Native.H3DirectedEdge
 H3.NET.Native.H3DirectedEdge.ToBoundary() -> System.Collections.Generic.IReadOnlyList<H3.NET.Native.LatLng>!
 H3.NET.Native.H3DirectedEdge.ToCells() -> (H3.NET.Native.H3Index Origin, H3.NET.Native.H3Index Destination)
@@ -45,13 +45,13 @@ H3.NET.Native.H3Index.BaseCellNumber.get -> int
 H3.NET.Native.H3Index.CellAreaKm2() -> double
 H3.NET.Native.H3Index.CellAreaM2() -> double
 H3.NET.Native.H3Index.CellAreaRads2() -> double
-H3.NET.Native.H3Index.CellToCenterChild(int childRes) -> H3.NET.Native.H3Index
-H3.NET.Native.H3Index.CellToChildPos(int parentRes) -> long
-H3.NET.Native.H3Index.CellToChildren(int childRes) -> H3.NET.Native.H3Index[]!
-H3.NET.Native.H3Index.CellToChildrenInto(int childRes, System.Span<H3.NET.Native.H3Index> destination) -> int
+H3.NET.Native.H3Index.CellToCenterChild(int childResolution) -> H3.NET.Native.H3Index
+H3.NET.Native.H3Index.CellToChildPos(int parentResolution) -> long
+H3.NET.Native.H3Index.CellToChildren(int childResolution) -> H3.NET.Native.H3Index[]!
+H3.NET.Native.H3Index.CellToChildrenInto(int childResolution, System.Span<H3.NET.Native.H3Index> destination) -> int
 H3.NET.Native.H3Index.CellToLocalIJ(H3.NET.Native.H3Index target) -> H3.NET.Native.CoordIJ
-H3.NET.Native.H3Index.CellToParent(int parentRes) -> H3.NET.Native.H3Index
-H3.NET.Native.H3Index.ChildPosToCell(long childPos, int childRes) -> H3.NET.Native.H3Index
+H3.NET.Native.H3Index.CellToParent(int parentResolution) -> H3.NET.Native.H3Index
+H3.NET.Native.H3Index.ChildPosToCell(long childPosition, int childResolution) -> H3.NET.Native.H3Index
 H3.NET.Native.H3Index.DirectedEdgeTo(H3.NET.Native.H3Index destination) -> H3.NET.Native.H3DirectedEdge
 H3.NET.Native.H3Index.GetBoundary() -> System.Collections.Generic.IReadOnlyList<H3.NET.Native.LatLng>!
 H3.NET.Native.H3Index.GetDirectedEdges() -> H3.NET.Native.H3DirectedEdge[]!
@@ -59,7 +59,7 @@ H3.NET.Native.H3Index.GetDirectedEdgesInto(System.Span<H3.NET.Native.H3DirectedE
 H3.NET.Native.H3Index.GetIcosahedronFaces() -> int[]!
 H3.NET.Native.H3Index.GetIcosahedronFacesInto(System.Span<int> destination) -> int
 H3.NET.Native.H3Index.GetIndexDigit(int resolution) -> int
-H3.NET.Native.H3Index.GetVertex(int vertexNum) -> H3.NET.Native.H3Vertex
+H3.NET.Native.H3Index.GetVertex(int vertexNumber) -> H3.NET.Native.H3Vertex
 H3.NET.Native.H3Index.GetVertexes() -> H3.NET.Native.H3Vertex[]!
 H3.NET.Native.H3Index.GetVertexesInto(System.Span<H3.NET.Native.H3Vertex> destination) -> int
 H3.NET.Native.H3Index.GridDisk(int k) -> H3.NET.Native.H3Index[]!
@@ -77,19 +77,18 @@ H3.NET.Native.H3Index.IsNeighbor(H3.NET.Native.H3Index destination) -> bool
 H3.NET.Native.H3Index.IsNull.get -> bool
 H3.NET.Native.H3Index.IsPentagon.get -> bool
 H3.NET.Native.H3Index.IsResClassIII.get -> bool
-H3.NET.Native.H3Index.IsValid.get -> bool
-H3.NET.Native.H3Index.IsValidCell.get -> bool
-H3.NET.Native.H3Index.IsValidIndex.get -> bool
+H3.NET.Native.H3Index.IsValidCell() -> bool
+H3.NET.Native.H3Index.IsValidIndex() -> bool
 H3.NET.Native.H3Index.LocalIJToCell(H3.NET.Native.CoordIJ ij) -> H3.NET.Native.H3Index
 H3.NET.Native.H3Index.Resolution.get -> int
 H3.NET.Native.H3Index.ToCanonicalString() -> string!
 H3.NET.Native.H3Index.ToLatLng() -> H3.NET.Native.LatLng
 H3.NET.Native.H3Index.Value.get -> ulong
 H3.NET.Native.H3Index.Value.init -> void
-H3.NET.Native.H3InvalidCellException
-H3.NET.Native.H3InvalidCellException.H3InvalidCellException() -> void
-H3.NET.Native.H3InvalidCellException.H3InvalidCellException(string! message) -> void
-H3.NET.Native.H3InvalidCellException.H3InvalidCellException(string! message, System.Exception! innerException) -> void
+H3.NET.Native.H3InvalidIndexException
+H3.NET.Native.H3InvalidIndexException.H3InvalidIndexException() -> void
+H3.NET.Native.H3InvalidIndexException.H3InvalidIndexException(string! message) -> void
+H3.NET.Native.H3InvalidIndexException.H3InvalidIndexException(string! message, System.Exception! innerException) -> void
 H3.NET.Native.H3MemoryException
 H3.NET.Native.H3MemoryException.H3MemoryException() -> void
 H3.NET.Native.H3MemoryException.H3MemoryException(string! message) -> void
@@ -136,8 +135,8 @@ static H3.NET.Native.H3Index.Null.get -> H3.NET.Native.H3Index
 static H3.NET.Native.H3Index.Parse(string! value) -> H3.NET.Native.H3Index
 static H3.NET.Native.H3Index.TryFromString(string? value, out H3.NET.Native.H3Index result) -> bool
 static H3.NET.Native.H3Index.TryParse(string? value, out H3.NET.Native.H3Index result) -> bool
-static H3.NET.Native.H3Index.UncompactCells(System.ReadOnlySpan<H3.NET.Native.H3Index> cells, int res) -> H3.NET.Native.H3Index[]!
-static H3.NET.Native.H3Index.UncompactCellsInto(System.ReadOnlySpan<H3.NET.Native.H3Index> cells, int res, System.Span<H3.NET.Native.H3Index> destination) -> int
+static H3.NET.Native.H3Index.UncompactCells(System.ReadOnlySpan<H3.NET.Native.H3Index> cells, int resolution) -> H3.NET.Native.H3Index[]!
+static H3.NET.Native.H3Index.UncompactCellsInto(System.ReadOnlySpan<H3.NET.Native.H3Index> cells, int resolution, System.Span<H3.NET.Native.H3Index> destination) -> int
 static H3.NET.Native.H3Polygon.FromCells(System.Collections.Generic.IEnumerable<H3.NET.Native.H3Index>! cells) -> System.Collections.Generic.IReadOnlyList<H3.NET.Native.GeoPolygon!>!
 static H3.NET.Native.H3Polygon.ToCells(H3.NET.Native.GeoPolygon! polygon, int resolution) -> H3.NET.Native.H3Index[]!
 static H3.NET.Native.H3Polygon.ToCellsExperimental(H3.NET.Native.GeoPolygon! polygon, int resolution, H3.NET.Native.ContainmentMode mode) -> H3.NET.Native.H3Index[]!
