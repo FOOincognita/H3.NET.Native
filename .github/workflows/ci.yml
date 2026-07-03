@@ -391,18 +391,12 @@ jobs:
   # instruments the whole host. Heap/stack buffer overflow, use-after-free, and
   # double-free in libh3 or the binding path fail immediately (exitcode=1) and are
   # NOT suppressible; LSan leak reports are filtered by lsan.supp down to leaks
-  # attributable to libh3 (CLR/JIT/ICU/loader noise is ignored).
-  #
-  # continue-on-error (non-gating) for now: the ASan+CLR signal/leak interaction is
-  # environment-sensitive and this could not be validated locally (no linux
-  # container runtime on the dev box). It graduates to a hard gate once it is green
-  # for ~5 consecutive runs on real CI (drop continue-on-error then). The overflow
-  # half is already authoritative on day one; only leak-gating precision needs the
-  # soak-in period.
+  # attributable to libh3 (CLR/JIT/ICU/loader noise is ignored). Hard gate since
+  # 2026-07-03, after a 5-green soak-in of the ASan+CLR leak-signal interaction
+  # (it could not be validated locally: no linux container runtime on the dev box).
   asan-linux:
     name: asan-linux
     runs-on: ubuntu-latest
-    continue-on-error: true
     env:
       # Defer signal handling to the CLR (it installs its own SIGSEGV handler for
       # null-ref/GC write barriers and manages alt stacks), enable leak detection,
@@ -465,10 +459,16 @@ jobs:
           echo "ASAN_RT=$rt" >> "$GITHUB_ENV"
 
       # Preload libasan ONLY for this command (never for restore/build, which must
-      # not be instrumented). The soak exercises the scalar hot paths and the
-      # heap-owning FromCells success + pre-allocation error branches every
-      # iteration; a moderate iteration count keeps ASan's ~2-3x slowdown / extra
-      # RSS within runner limits while still stressing the buffer-sizing and
+      # not be instrumented), and run the xunit.v3 in-process runner executable
+      # directly instead of `dotnet test`: the VSTest path preloads ASan into its
+      # whole process tree (console + testhost + assembly-info child), and the
+      # assembly-info child's stdout JSON handshake is timing-sensitive under ASan
+      # ("Catastrophic failure: Test process did not return valid JSON", PR #35).
+      # Direct execution instruments exactly one process — the only one LSan needs
+      # to analyze. The soak exercises the scalar hot paths and the heap-owning
+      # FromCells success + pre-allocation error branches every iteration; a
+      # moderate iteration count keeps ASan's ~2-3x slowdown / extra RSS within
+      # runner limits while still stressing the buffer-sizing and
       # LinkedGeoPolygon teardown paths hard.
       - name: Managed soak under ASan/LSan
         env:
@@ -479,8 +479,8 @@ jobs:
           # LSan is the leak oracle in this job; the managed-heap bound stays active.
           H3_SOAK_CHECK_RSS: "0"
         run: |
-          dotnet test tests/H3.NET.Native.MemoryTests/H3.NET.Native.MemoryTests.csproj \
-            -c Release -f net10.0 --no-build --filter "Category=Soak"
+          dotnet exec tests/H3.NET.Native.MemoryTests/bin/Release/net10.0/H3.NET.Native.MemoryTests.dll \
+            -trait "Category=Soak"
 
   # Warn-only: prove the benchmarks project builds and runs a tiny smoke (a dry
   # BenchmarkDotNet job: one op per benchmark, no statistics). Never gates.
