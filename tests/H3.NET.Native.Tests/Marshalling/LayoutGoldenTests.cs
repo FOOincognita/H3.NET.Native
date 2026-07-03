@@ -147,7 +147,7 @@ public sealed class LayoutGoldenTests
     public void Boundary_RoundTrip_YieldsFiniteVerticesInDegrees(string hex)
     {
         var cell = H3Index.Parse(hex);
-        Assert.True(cell.IsValidCell, $"{hex} should be a valid cell.");
+        Assert.True(cell.IsValidCell(), $"{hex} should be a valid cell.");
 
         var boundary = cell.GetBoundary();
 
@@ -172,7 +172,7 @@ public sealed class LayoutGoldenTests
         // the vertices come back finite and in canonical degree ranges -- the same layout
         // contract, exercised through the directed-edge code path.
         var origin = H3Index.Parse("8928308280fffff"); // res-8 San Francisco hexagon.
-        var edge = origin.DirectedEdgeTo(origin.GetDirectedEdges()[0].Destination);
+        var edge = origin.DirectedEdgeTo(origin.GetDirectedEdges()[0].GetDestination());
 
         var boundary = edge.ToBoundary();
 

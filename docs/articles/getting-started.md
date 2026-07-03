@@ -37,7 +37,7 @@ Console.WriteLine(cell.Resolution);  // 9
 ## Error handling
 
 Operations that can fail surface H3 status codes as typed exceptions derived from
-`H3Exception` (for example `H3InvalidCellException`, `H3DomainException`,
+`H3Exception` (for example `H3InvalidIndexException`, `H3DomainException`,
 `H3PentagonException`, `H3MemoryException`). Catch `H3Exception` to handle any of them.
 
 ## Next steps

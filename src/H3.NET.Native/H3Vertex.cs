@@ -37,7 +37,7 @@ public readonly record struct H3Vertex(ulong Value)
     /// Returns the geographic coordinate of this vertex.
     /// </summary>
     /// <returns>The vertex location, in degrees.</returns>
-    /// <exception cref="H3InvalidCellException">This is not a valid H3 vertex.</exception>
+    /// <exception cref="H3InvalidIndexException">This is not a valid H3 vertex.</exception>
     public LatLng ToLatLng()
     {
         EnsureValidVertex();
@@ -49,7 +49,7 @@ public readonly record struct H3Vertex(ulong Value)
     {
         if (!IsValid())
         {
-            throw new H3InvalidCellException(
+            throw new H3InvalidIndexException(
                 (uint)H3ErrorCode.VertexInvalid,
                 $"0x{Value:x16} is not a valid H3 vertex.");
         }

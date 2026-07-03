@@ -61,7 +61,7 @@ public sealed class HierarchyUnitTests
 
         var parent = cell.CellToParent(res - 1);
         Assert.Equal(res - 1, parent.Resolution);
-        Assert.True(parent.IsValidCell);
+        Assert.True(parent.IsValidCell());
     }
 
     [Theory]

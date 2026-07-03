@@ -32,7 +32,7 @@ public sealed class GridDiskPropertyTests
                 Assert.Contains(disk, c => c.Value == origin.Value);
                 Assert.All(disk, c =>
                 {
-                    Assert.True(c.IsValidCell);
+                    Assert.True(c.IsValidCell());
                     Assert.False(c.IsNull);
                 });
             },

@@ -33,7 +33,7 @@ public sealed class GridTraversalPropertyTests
     /// </summary>
     private static readonly Gen<ulong> InvalidIndexGen =
         Gen.Frequency((9, Gen.ULong), (1, Gen.ULong[1UL, 0xFUL]))
-            .Where(v => !new H3Index(v).IsValidCell);
+            .Where(v => !new H3Index(v).IsValidCell());
 
     /// <summary>Returns the grid distance, or null if the native call failed (pentagon distortion).</summary>
     private static long? TryGridDistance(H3Index origin, H3Index other)
@@ -63,7 +63,7 @@ public sealed class GridTraversalPropertyTests
 
                 Assert.All(ring, c =>
                 {
-                    Assert.True(c.IsValidCell);
+                    Assert.True(c.IsValidCell());
                     Assert.False(c.IsNull);
                 });
 

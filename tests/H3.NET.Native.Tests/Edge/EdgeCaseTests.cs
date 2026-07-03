@@ -22,7 +22,7 @@ public sealed class EdgeCaseTests
         foreach (string hex in cells)
         {
             var cell = H3Index.Parse(hex);
-            Assert.True(cell.IsValidCell, $"{hex} should be a valid cell.");
+            Assert.True(cell.IsValidCell(), $"{hex} should be a valid cell.");
             Assert.Equal(0, cell.Resolution);
         }
     }
@@ -36,7 +36,7 @@ public sealed class EdgeCaseTests
         foreach (var (hex, res) in pentagons)
         {
             var cell = H3Index.Parse(hex);
-            Assert.True(cell.IsValidCell, $"{hex} should be a valid cell.");
+            Assert.True(cell.IsValidCell(), $"{hex} should be a valid cell.");
             Assert.True(cell.IsPentagon, $"{hex} should be a pentagon.");
             Assert.Equal(res, cell.Resolution);
         }
@@ -65,7 +65,7 @@ public sealed class EdgeCaseTests
         var point = new LatLng(37.775938728915946, -122.41795063018799);
 
         var cell = H3Index.FromLatLng(point, resolution);
-        Assert.True(cell.IsValidCell);
+        Assert.True(cell.IsValidCell());
         Assert.Equal(resolution, cell.Resolution);
 
         // Center re-binning is a fixed point at the same resolution.
@@ -86,7 +86,7 @@ public sealed class EdgeCaseTests
         var expected = H3Index.Parse(expectedHex);
         var actual = H3Index.FromLatLng(new LatLng(lat, lng), res);
 
-        Assert.True(actual.IsValidCell);
+        Assert.True(actual.IsValidCell());
         Assert.Equal(expected.Value, actual.Value);
     }
 
@@ -114,8 +114,7 @@ public sealed class EdgeCaseTests
         var sentinel = H3Index.Null;
 
         // Mode bits are zero, so the native validity check rejects the sentinel.
-        Assert.False(sentinel.IsValidCell);
-        Assert.False(sentinel.IsValid);
+        Assert.False(sentinel.IsValidCell());
     }
 
     [Fact]
@@ -124,7 +123,7 @@ public sealed class EdgeCaseTests
         var sentinel = H3Index.Null;
 
         // Resolution is gated on IsValidCell, so the sentinel surfaces a typed failure.
-        Assert.Throws<H3InvalidCellException>(() => _ = sentinel.Resolution);
+        Assert.Throws<H3InvalidIndexException>(() => _ = sentinel.Resolution);
     }
 
     [Fact]
@@ -133,7 +132,7 @@ public sealed class EdgeCaseTests
         var sentinel = H3Index.Null;
 
         // IsPentagon is gated on IsValidCell, so the sentinel surfaces a typed failure.
-        Assert.Throws<H3InvalidCellException>(() => _ = sentinel.IsPentagon);
+        Assert.Throws<H3InvalidIndexException>(() => _ = sentinel.IsPentagon);
     }
 
     [Fact]
@@ -150,13 +149,13 @@ public sealed class EdgeCaseTests
     public void CellArea_OnInvalidCell_ThrowsInvalidCell(ulong rawCell)
     {
         // Native cellArea* only rejects an out-of-range base cell, so the managed
-        // validate-first guard supplies the documented H3InvalidCellException.
+        // validate-first guard supplies the documented H3InvalidIndexException.
         var cell = new H3Index(rawCell);
-        Assert.False(cell.IsValidCell);
+        Assert.False(cell.IsValidCell());
 
-        Assert.Throws<H3InvalidCellException>(() => cell.CellAreaRads2());
-        Assert.Throws<H3InvalidCellException>(() => cell.CellAreaKm2());
-        Assert.Throws<H3InvalidCellException>(() => cell.CellAreaM2());
+        Assert.Throws<H3InvalidIndexException>(() => cell.CellAreaRads2());
+        Assert.Throws<H3InvalidIndexException>(() => cell.CellAreaKm2());
+        Assert.Throws<H3InvalidIndexException>(() => cell.CellAreaM2());
     }
 
     [Fact]
@@ -175,8 +174,8 @@ public sealed class EdgeCaseTests
         var broken = new H3DirectedEdge(edge.Value | (0x7UL << 18));
         Assert.False(broken.IsValid());
 
-        Assert.Throws<H3InvalidCellException>(() => broken.EdgeLengthRads());
-        Assert.Throws<H3InvalidCellException>(() => broken.EdgeLengthKm());
-        Assert.Throws<H3InvalidCellException>(() => broken.EdgeLengthM());
+        Assert.Throws<H3InvalidIndexException>(() => broken.EdgeLengthRads());
+        Assert.Throws<H3InvalidIndexException>(() => broken.EdgeLengthKm());
+        Assert.Throws<H3InvalidIndexException>(() => broken.EdgeLengthM());
     }
 }

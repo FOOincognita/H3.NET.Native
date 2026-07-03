@@ -14,7 +14,7 @@ namespace H3.NET.Native.Tests.Unit;
 /// H3DirectedEdge value type (IsValid / Origin / Destination / ToCells / Deconstruct /
 /// ToBoundary / Reverse). Each member is exercised on its happy path plus every
 /// documented guard / error arm: the E_RES_MISMATCH (12) and E_NOT_NEIGHBORS (11)
-/// H3Exception channels, the H3InvalidCellException (DirEdgeInvalid=6) raised when a
+/// H3Exception channels, the H3InvalidIndexException (DirEdgeInvalid=6) raised when a
 /// projection runs on a bogus edge, the bare-int IsValid never-throws contract, the
 /// M4 fixed-capacity-6 strip (hexagon = 6, pentagon = 5 with the H3_NULL hole
 /// stripped), the *Into destination-length guard, the pre-clear of stale caller data,
@@ -25,7 +25,7 @@ namespace H3.NET.Native.Tests.Unit;
 /// -&gt; E_RES_MISMATCH (12); cellsToDirectedEdge on non-adjacent same-res cells
 /// -&gt; E_NOT_NEIGHBORS (11). Both map to the base H3Exception. The edge projections
 /// (Origin / Destination / ToCells / ToBoundary / Reverse) on an invalid edge surface
-/// E_DIR_EDGE_INVALID (6) -&gt; H3InvalidCellException.
+/// E_DIR_EDGE_INVALID (6) -&gt; H3InvalidIndexException.
 /// </summary>
 public sealed class DirectedEdgeUnitTests
 {
@@ -160,21 +160,21 @@ public sealed class DirectedEdgeUnitTests
         var dest = Neighbor;
         var edge = origin.DirectedEdgeTo(dest);
 
-        Assert.Equal(origin, edge.Origin);
-        Assert.Equal(dest, edge.Destination);
+        Assert.Equal(origin, edge.GetOrigin());
+        Assert.Equal(dest, edge.GetDestination());
     }
 
     [Fact]
     public void Origin_OnInvalidEdge_ThrowsH3InvalidCell()
     {
-        var ex = Assert.Throws<H3InvalidCellException>(() => _ = new H3DirectedEdge(JunkEdge).Origin);
+        var ex = Assert.Throws<H3InvalidIndexException>(() => _ = new H3DirectedEdge(JunkEdge).GetOrigin());
         Assert.Equal(6u, ex.ErrorCode); // E_DIR_EDGE_INVALID
     }
 
     [Fact]
     public void Destination_OnInvalidEdge_ThrowsH3InvalidCell()
     {
-        var ex = Assert.Throws<H3InvalidCellException>(() => _ = new H3DirectedEdge(JunkEdge).Destination);
+        var ex = Assert.Throws<H3InvalidIndexException>(() => _ = new H3DirectedEdge(JunkEdge).GetDestination());
         Assert.Equal(6u, ex.ErrorCode); // E_DIR_EDGE_INVALID
     }
 
@@ -195,7 +195,7 @@ public sealed class DirectedEdgeUnitTests
     [Fact]
     public void ToCells_OnInvalidEdge_ThrowsH3InvalidCell()
     {
-        Assert.Throws<H3InvalidCellException>(() => new H3DirectedEdge(JunkEdge).ToCells());
+        Assert.Throws<H3InvalidIndexException>(() => new H3DirectedEdge(JunkEdge).ToCells());
     }
 
     // ---- (6) Deconstruct ---------------------------------------------------
@@ -206,8 +206,8 @@ public sealed class DirectedEdgeUnitTests
         var edge = Origin.DirectedEdgeTo(Neighbor);
 
         var (o, d) = edge; // record-struct Deconstruct, backed by ToCells.
-        Assert.Equal(edge.Origin, o);
-        Assert.Equal(edge.Destination, d);
+        Assert.Equal(edge.GetOrigin(), o);
+        Assert.Equal(edge.GetDestination(), d);
     }
 
     // ---- (7) GetDirectedEdges ----------------------------------------------
@@ -221,7 +221,7 @@ public sealed class DirectedEdgeUnitTests
 
         Assert.Equal(6, edges.Length);
         Assert.All(edges, e => Assert.True(e.IsValid()));
-        Assert.All(edges, e => Assert.Equal(cell, e.Origin));
+        Assert.All(edges, e => Assert.Equal(cell, e.GetOrigin()));
         Assert.DoesNotContain(H3DirectedEdge.Null, edges);
     }
 
@@ -234,7 +234,7 @@ public sealed class DirectedEdgeUnitTests
 
         Assert.Equal(5, edges.Length);
         Assert.All(edges, e => Assert.True(e.IsValid()));
-        Assert.All(edges, e => Assert.Equal(cell, e.Origin));
+        Assert.All(edges, e => Assert.Equal(cell, e.GetOrigin()));
         Assert.DoesNotContain(H3DirectedEdge.Null, edges);
     }
 
@@ -306,7 +306,7 @@ public sealed class DirectedEdgeUnitTests
     [Fact]
     public void ToBoundary_OnInvalidEdge_ThrowsH3InvalidCell()
     {
-        Assert.Throws<H3InvalidCellException>(() => new H3DirectedEdge(JunkEdge).ToBoundary());
+        Assert.Throws<H3InvalidIndexException>(() => new H3DirectedEdge(JunkEdge).ToBoundary());
     }
 
     // ---- (10) Reverse ------------------------------------------------------
@@ -324,14 +324,14 @@ public sealed class DirectedEdgeUnitTests
         var edge = Origin.DirectedEdgeTo(Neighbor);
         var reversed = edge.Reverse();
 
-        Assert.Equal(edge.Destination, reversed.Origin);
-        Assert.Equal(edge.Origin, reversed.Destination);
+        Assert.Equal(edge.GetDestination(), reversed.GetOrigin());
+        Assert.Equal(edge.GetOrigin(), reversed.GetDestination());
     }
 
     [Fact]
     public void Reverse_OnInvalidEdge_ThrowsH3InvalidCell()
     {
-        Assert.Throws<H3InvalidCellException>(() => new H3DirectedEdge(JunkEdge).Reverse());
+        Assert.Throws<H3InvalidIndexException>(() => new H3DirectedEdge(JunkEdge).Reverse());
     }
 
     // ---- Receiver-validation guards on the H3Index *array members ----------
@@ -339,13 +339,13 @@ public sealed class DirectedEdgeUnitTests
     [Fact]
     public void GetDirectedEdges_OnNull_Throws()
     {
-        Assert.Throws<H3InvalidCellException>(() => H3Index.Null.GetDirectedEdges());
+        Assert.Throws<H3InvalidIndexException>(() => H3Index.Null.GetDirectedEdges());
     }
 
     [Fact]
     public void GetDirectedEdges_OnInvalidIndex_Throws()
     {
-        Assert.Throws<H3InvalidCellException>(() => new H3Index(0xffffffffffffffffUL).GetDirectedEdges());
+        Assert.Throws<H3InvalidIndexException>(() => new H3Index(0xffffffffffffffffUL).GetDirectedEdges());
     }
 
     [Fact]
@@ -353,7 +353,7 @@ public sealed class DirectedEdgeUnitTests
     {
         // A valid-length span plus an invalid origin must still surface the cell
         // exception (the arg check passes, the receiver guard fires).
-        Assert.Throws<H3InvalidCellException>(
+        Assert.Throws<H3InvalidIndexException>(
             () => new H3Index(0xffffffffffffffffUL).GetDirectedEdgesInto(new H3DirectedEdge[MaxEdgeCount]));
     }
 
@@ -385,8 +385,8 @@ public sealed class DirectedEdgeUnitTests
         // IsValid never throws and must report these as invalid.
         Assert.False(edge.IsValid());
 
-        TryThrowOrReturn(() => _ = edge.Origin);
-        TryThrowOrReturn(() => _ = edge.Destination);
+        TryThrowOrReturn(() => _ = edge.GetOrigin());
+        TryThrowOrReturn(() => _ = edge.GetDestination());
         TryThrowOrReturn(() => edge.ToCells());
         TryThrowOrReturn(() => edge.ToBoundary());
         TryThrowOrReturn(() => edge.Reverse());
@@ -414,8 +414,8 @@ public sealed class DirectedEdgeUnitTests
         var edge = new H3DirectedEdge(H3Index.Parse(edgeHex).Value);
 
         Assert.True(edge.IsValid());
-        Assert.Equal(H3Index.Parse(originHex), edge.Origin);
-        Assert.Equal(H3Index.Parse(destHex), edge.Destination);
+        Assert.Equal(H3Index.Parse(originHex), edge.GetOrigin());
+        Assert.Equal(H3Index.Parse(destHex), edge.GetDestination());
         Assert.Equal(new H3DirectedEdge(H3Index.Parse(reverseHex).Value), edge.Reverse());
 
         var (origin, destination) = edge.ToCells();

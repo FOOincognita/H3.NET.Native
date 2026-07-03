@@ -8,7 +8,7 @@ namespace H3.NET.Native.Tests.Properties;
 /// <summary>
 /// Error-path invariants: out-of-range resolutions throw <see cref="H3DomainException"/>,
 /// validating accessors (<see cref="H3Index.Resolution"/>) throw
-/// <see cref="H3InvalidCellException"/> on invalid indices, and the non-validating
+/// <see cref="H3InvalidIndexException"/> on invalid indices, and the non-validating
 /// decode <see cref="H3Index.ToLatLng"/> always returns safely (a finite, in-range
 /// coordinate) or throws a typed <see cref="H3Exception"/> -- never a crash, and never
 /// non-finite or out-of-range garbage.
@@ -19,7 +19,7 @@ public sealed class ErrorPathPropertyTests
 
     /// <summary>
     /// High-entropy source of genuinely invalid 64-bit indices. Almost every random
-    /// 64-bit value fails <see cref="H3Index.IsValidCell"/> (wrong mode, reserved bits
+    /// 64-bit value fails <see cref="H3Index.IsValidCell()"/> (wrong mode, reserved bits
     /// set, out-of-range base cell, illegal digit, or a resolution/digit count mismatch),
     /// so the validity filter is cheap and never starves. A small slice of low-magnitude
     /// values is retained so the trivial "top bits all zero" path is still covered, but
@@ -28,7 +28,7 @@ public sealed class ErrorPathPropertyTests
     /// </summary>
     private static readonly Gen<ulong> InvalidIndexGen =
         Gen.Frequency((9, Gen.ULong), (1, Gen.ULong[1UL, 0xFUL]))
-            .Where(v => !new H3Index(v).IsValidCell);
+            .Where(v => !new H3Index(v).IsValidCell());
 
     [Fact]
     public void FromLatLng_WithInvalidResolution_Throws_H3DomainException()
@@ -47,7 +47,7 @@ public sealed class ErrorPathPropertyTests
     }
 
     [Fact]
-    public void Resolution_OnInvalidIndex_Throws_H3InvalidCellException()
+    public void Resolution_OnInvalidIndex_Throws_H3InvalidIndexException()
     {
         // Diverse 64-bit values that IsValidCell rejects (wrong mode, reserved bits set,
         // out-of-range base cell, illegal digit, resolution/digit mismatch). The filter
@@ -57,7 +57,7 @@ public sealed class ErrorPathPropertyTests
             raw =>
             {
                 var cell = new H3Index(raw);
-                Assert.Throws<H3InvalidCellException>(() => _ = cell.Resolution);
+                Assert.Throws<H3InvalidIndexException>(() => _ = cell.Resolution);
             },
             iter: Iterations);
     }

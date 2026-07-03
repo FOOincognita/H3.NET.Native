@@ -39,7 +39,7 @@ internal static class H3ErrorMarshaller
                 // it is raised by constructCell-style argument-domain validation when a digit is
                 // invalid for the requested resolution, which is an argument-domain error. A
                 // structurally malformed or otherwise invalid index instead yields CellInvalid
-                // (mapped to H3InvalidCellException below), so the domain mapping is the
+                // (mapped to H3InvalidIndexException below), so the domain mapping is the
                 // semantically correct distinction between bad-argument and bad-index.
                 or H3ErrorCode.DeletedDigit
                 => new H3DomainException(code, message),
@@ -49,7 +49,7 @@ internal static class H3ErrorMarshaller
                 or H3ErrorCode.DirEdgeInvalid
                 or H3ErrorCode.UndirEdgeInvalid
                 or H3ErrorCode.VertexInvalid
-                => new H3InvalidCellException(code, message),
+                => new H3InvalidIndexException(code, message),
 
             H3ErrorCode.Pentagon => new H3PentagonException(code, message),
 

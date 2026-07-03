@@ -39,7 +39,7 @@ public sealed class RoundTripPropertyTests
             {
                 var (point, res) = input;
                 var cell = H3Index.FromLatLng(point, res);
-                Assert.True(cell.IsValidCell);
+                Assert.True(cell.IsValidCell());
                 Assert.Equal(res, cell.Resolution);
                 Assert.False(cell.IsNull);
             },

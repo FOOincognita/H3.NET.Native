@@ -91,18 +91,18 @@ public sealed class IcosahedronFacesUnitTests
     [Fact]
     public void GetIcosahedronFaces_OnNull_Throws()
     {
-        Assert.Throws<H3InvalidCellException>(() => H3Index.Null.GetIcosahedronFaces());
+        Assert.Throws<H3InvalidIndexException>(() => H3Index.Null.GetIcosahedronFaces());
     }
 
     [Fact]
     public void GetIcosahedronFacesInto_OnNull_Throws()
     {
-        Assert.Throws<H3InvalidCellException>(() => H3Index.Null.GetIcosahedronFacesInto(new int[8]));
+        Assert.Throws<H3InvalidIndexException>(() => H3Index.Null.GetIcosahedronFacesInto(new int[8]));
     }
 
     [Fact]
     public void GetIcosahedronFaces_OnInvalidIndex_Throws()
     {
-        Assert.Throws<H3InvalidCellException>(() => new H3Index(0xffffffffffffffffUL).GetIcosahedronFaces());
+        Assert.Throws<H3InvalidIndexException>(() => new H3Index(0xffffffffffffffffUL).GetIcosahedronFaces());
     }
 }
