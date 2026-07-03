@@ -308,7 +308,103 @@ jobs:
           H3_SOAK_ITERS: "5000000"
         run: dotnet test tests/H3.NET.Native.MemoryTests/H3.NET.Native.MemoryTests.csproj -c Release -f net10.0 --no-build --filter "Category=Soak"
 
-      # ASan/LSan LD_PRELOAD gate deferred — needs a CLR suppressions file (follow-up)
+      # NOTE: the ASan/LSan LD_PRELOAD gate that exercises libh3 as loaded by the
+      # dotnet host lives in the separate `asan-linux` job below (it needs a CLR
+      # LSan suppressions file, tests/H3.NET.Native.MemoryTests/lsan.supp).
+
+  # AddressSanitizer/LeakSanitizer gate that exercises libh3 AS LOADED BY THE
+  # DOTNET HOST (complementary to memory-linux's pure-C valgrind harness). It
+  # rebuilds libh3 with -fsanitize=address into a separate build tree, then runs
+  # the managed soak with gcc's libasan preloaded into the dotnet process so ASan
+  # instruments the whole host. Heap/stack buffer overflow, use-after-free, and
+  # double-free in libh3 or the binding path fail immediately (exitcode=1) and are
+  # NOT suppressible; LSan leak reports are filtered by lsan.supp down to leaks
+  # attributable to libh3 (CLR/JIT/ICU/loader noise is ignored).
+  #
+  # continue-on-error (non-gating) for now: the ASan+CLR signal/leak interaction is
+  # environment-sensitive and this could not be validated locally (no linux
+  # container runtime on the dev box). It graduates to a hard gate once it is green
+  # for ~5 consecutive runs on real CI (drop continue-on-error then). The overflow
+  # half is already authoritative on day one; only leak-gating precision needs the
+  # soak-in period.
+  asan-linux:
+    name: asan-linux
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      # Defer signal handling to the CLR (it installs its own SIGSEGV handler for
+      # null-ref/GC write barriers and manages alt stacks), enable leak detection,
+      # and exit non-zero on any finding. alloc_dealloc_mismatch is off because the
+      # whole (mostly uninstrumented) process is intercepted and pure-C libh3 never
+      # mismatches; odr/tls interceptors are relaxed to avoid cross-module false
+      # positives. Do NOT raise malloc_context_size (see lsan.supp for why).
+      ASAN_OPTIONS: "detect_leaks=1:handle_segv=0:allow_user_segv_handler=1:use_sigaltstack=0:abort_on_error=0:exitcode=1:alloc_dealloc_mismatch=0:detect_odr_violation=0:intercept_tls_get_addr=0:symbolize=1"
+      LSAN_OPTIONS: "suppressions=${{ github.workspace }}/tests/H3.NET.Native.MemoryTests/lsan.supp:print_suppressions=0"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      # Fewer helper processes (each preloaded child runs its own LSan at exit).
+      DOTNET_CLI_USE_MSBUILD_SERVER: "0"
+      # W^X JIT page protection conflicts with ASan's shadow-memory management.
+      DOTNET_EnableWriteXorExecute: "0"
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: recursive
+
+      # ubuntu-latest ships gcc + its matching libasan; ensure present for both the
+      # instrumented build AND the runtime preload (the .so and the preloaded
+      # runtime MUST come from the same toolchain).
+      - name: Install gcc + libasan
+        run: sudo apt-get update && sudo apt-get install -y gcc
+
+      # Rebuilds libh3 with -fsanitize=address (separate external/h3/build-asan
+      # tree) and stages it into runtimes/linux-x64/native so the eng/ copy target
+      # places the instrumented .so next to the test binaries -- the exact path the
+      # soak resolves libh3 from. This is an isolated job workspace, so nothing the
+      # shipping jobs produce is disturbed.
+      - name: Build native (linux-x64, asan)
+        run: bash build/build-native.sh linux-x64 --asan
+
+      - name: Setup .NET 8 + 10
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.301
+
+      - name: Restore (locked)
+        run: dotnet restore H3.NET.Native.slnx --locked-mode
+
+      - name: Build
+        run: dotnet build H3.NET.Native.slnx -c Release --no-restore
+
+      # Resolve gcc's asan runtime path once; prefer the unversioned symlink, then
+      # the versioned runtime, then a filesystem search, so the preload is robust
+      # across gcc versions on the runner image.
+      - name: Resolve libasan runtime
+        run: |
+          rt="$(gcc -print-file-name=libasan.so)"
+          if [ ! -e "$rt" ]; then rt="$(gcc -print-file-name=libasan.so.8)"; fi
+          if [ ! -e "$rt" ]; then
+            rt="$(find /usr/lib /usr/lib/gcc /usr/lib64 -name 'libasan.so.*' 2>/dev/null | sort -V | tail -n1)"
+          fi
+          test -e "$rt" || { echo "error: libasan runtime not found"; exit 1; }
+          echo "Resolved libasan: $rt"
+          echo "ASAN_RT=$rt" >> "$GITHUB_ENV"
+
+      # Preload libasan ONLY for this command (never for restore/build, which must
+      # not be instrumented). The soak exercises the scalar hot paths and the
+      # heap-owning FromCells success + pre-allocation error branches every
+      # iteration; a moderate iteration count keeps ASan's ~2-3x slowdown / extra
+      # RSS within runner limits while still stressing the buffer-sizing and
+      # LinkedGeoPolygon teardown paths hard.
+      - name: Managed soak under ASan/LSan
+        env:
+          LD_PRELOAD: ${{ env.ASAN_RT }}
+          H3_SOAK_ITERS: "300000"
+        run: |
+          dotnet test tests/H3.NET.Native.MemoryTests/H3.NET.Native.MemoryTests.csproj \
+            -c Release -f net10.0 --no-build --filter "Category=Soak"
 
   # Warn-only: prove the benchmarks project builds and runs a tiny smoke (a dry
   # BenchmarkDotNet job: one op per benchmark, no statistics). Never gates.

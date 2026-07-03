@@ -5,10 +5,16 @@
 # and stage the unversioned shared library into runtimes/<rid>/native/.
 #
 # Usage:
-#   build-native.sh <rid> [--clean]
+#   build-native.sh <rid> [--clean] [--asan]
 #
 #   <rid>     One of: linux-x64, linux-musl-x64, osx-arm64
 #   --clean   Remove the CMake build directory before configuring.
+#   --asan    Instrument libh3 with AddressSanitizer/LeakSanitizer. Uses a
+#             SEPARATE build directory (external/h3/build-asan) so the normal
+#             Release cache/artifact is never disturbed. The resulting .so has
+#             UNRESOLVED asan symbols (H3 does not link with -Wl,--no-undefined)
+#             that a preloaded libasan supplies at runtime; consumers MUST
+#             LD_PRELOAD the matching libasan (see the asan-linux CI job).
 #
 # This script natively builds the host RID (osx-arm64 on the dev box). The two
 # linux RIDs are produced via build/docker/Dockerfile.manylinux and
@@ -34,9 +40,11 @@ info() {
 
 usage() {
     cat >&2 <<'EOF'
-Usage: build-native.sh <rid> [--clean]
+Usage: build-native.sh <rid> [--clean] [--asan]
   <rid>     One of: linux-x64, linux-musl-x64, osx-arm64
   --clean   Remove the CMake build directory before configuring.
+  --asan    Instrument libh3 with AddressSanitizer/LeakSanitizer (separate
+            build dir; requires LD_PRELOAD of libasan at runtime).
 EOF
     exit 2
 }
@@ -45,10 +53,12 @@ EOF
 
 RID=""
 CLEAN=0
+ASAN=0
 
 for arg in "$@"; do
     case "$arg" in
         --clean) CLEAN=1 ;;
+        --asan) ASAN=1 ;;
         -h|--help) usage ;;
         -*) die "unknown option: $arg" ;;
         *)
@@ -72,7 +82,13 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -
 ROOT="$(cd -- "${SCRIPT_DIR}/.." >/dev/null 2>&1 && pwd -P)"
 
 readonly H3_SRC="${ROOT}/external/h3"
-readonly H3_BUILD="${H3_SRC}/build"
+# ASan uses a dedicated build tree so its instrumented CMake cache never clobbers
+# the normal Release build (external/h3/build) shared by the shipping artifacts.
+if [ "$ASAN" -eq 1 ]; then
+    readonly H3_BUILD="${H3_SRC}/build-asan"
+else
+    readonly H3_BUILD="${H3_SRC}/build"
+fi
 readonly OUT_DIR="${ROOT}/runtimes/${RID}/native"
 
 [ -d "$H3_SRC" ] || die "submodule not found at ${H3_SRC} (did you run 'git submodule update --init'?)"
@@ -112,6 +128,21 @@ fi
 
 # --- Configure (out-of-source) -----------------------------------------------
 
+# ASan flags are passed via the GLOBAL C/linker flag caches. H3 applies its own
+# warning flags per-target (target_compile_options), so overriding CMAKE_C_FLAGS
+# here augments the build without disturbing H3's flags. Frame pointers are kept
+# for readable sanitizer stacks. The runtime is intentionally NOT linked into the
+# .so (no -static-libasan): a preloaded libasan supplies it at load time.
+CMAKE_EXTRA_ARGS=()
+if [ "$ASAN" -eq 1 ]; then
+    info "AddressSanitizer instrumentation ENABLED (build dir: ${H3_BUILD})"
+    CMAKE_EXTRA_ARGS+=(
+        "-DCMAKE_C_FLAGS=-fsanitize=address -fno-omit-frame-pointer"
+        "-DCMAKE_SHARED_LINKER_FLAGS=-fsanitize=address"
+        "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address"
+    )
+fi
+
 info "configuring CMake (Release, shared) for rid=${RID}"
 cmake -S "$H3_SRC" -B "$H3_BUILD" \
     -DCMAKE_BUILD_TYPE=Release \
@@ -124,7 +155,8 @@ cmake -S "$H3_SRC" -B "$H3_BUILD" \
     -DBUILD_GENERATORS=OFF \
     -DENABLE_DOCS=OFF \
     -DENABLE_FORMAT=OFF \
-    -DENABLE_LINTING=OFF
+    -DENABLE_LINTING=OFF \
+    "${CMAKE_EXTRA_ARGS[@]+"${CMAKE_EXTRA_ARGS[@]}"}"
 
 # --- Build only the 'h3' shared-library target -------------------------------
 
@@ -202,7 +234,9 @@ esac
 # --- glibc baseline check (linux-x64 only) -----------------------------------
 
 GLIBC_MAX=""
-if [ "$RID" = "linux-x64" ]; then
+# Skip under --asan: the sanitizer runtime's own glibc dependencies inflate the
+# max version and would misrepresent the shipping artifact's baseline.
+if [ "$RID" = "linux-x64" ] && [ "$ASAN" -eq 0 ]; then
     if command -v objdump >/dev/null 2>&1; then
         GLIBC_MAX="$(objdump -T "$DEST_LIB" 2>/dev/null \
             | grep -oE 'GLIBC_[0-9.]+' \
@@ -234,6 +268,9 @@ cat <<EOF
   size (bytes) : ${size_bytes}
   key symbol   : latLngToCell present
 EOF
+if [ "$ASAN" -eq 1 ]; then
+    printf '  asan         : ENABLED (LD_PRELOAD libasan at runtime)\n'
+fi
 if [ "$RID" = "linux-x64" ] && [ -n "$GLIBC_MAX" ]; then
     printf '  glibc max    : %s\n' "$GLIBC_MAX"
 fi
