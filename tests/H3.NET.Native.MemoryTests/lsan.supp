@@ -63,3 +63,21 @@ leak:icudt
 leak:_dl_
 leak:__tls_get_addr
 leak:allocate_dtv
+
+# --- .NET ReadyToRun (R2R) runtime noise ------------------------------------
+# Crossgen'd framework assemblies execute NATIVE R2R code mapped from the .dll
+# itself, so LSan symbolizes those frames under the ASSEMBLY name (e.g.
+# "System.Private.CoreLib.dll"), not libcoreclr.so - the native-module entries
+# above do not match them. Seen live on CI (asan-linux round 2): one ~72 KB
+# process-lifetime allocation in the vstest CONSOLE process (which never loads
+# libh3) from System.Diagnostics.StackTrace materializing an exception stack
+# trace through System.Reflection.Metadata's lazily-allocated PDB/metadata
+# reader cache. The two metadata entries are safe under any-frame matching:
+# those assemblies only appear ABOVE allocations they themselves make - never
+# in a libh3 allocation stack. vstest.console.dll exists only in the runner
+# process, which never loads libh3, so it cannot mask a binding leak either.
+# Deliberately NOT suppressed: System.Private.CoreLib (its R2R frames could
+# plausibly sit within the recorded context of a genuine libh3 leak stack).
+leak:System.Reflection.Metadata
+leak:System.Diagnostics.StackTrace
+leak:vstest.console
