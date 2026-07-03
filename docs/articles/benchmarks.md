@@ -79,6 +79,33 @@ is both faster and dramatically lighter on the GC.
 > [Correctness and provenance](#correctness-and-provenance) below. The sweep above
 > compares wall-clock on the same input, not cell-set equality.
 
+### The small-fill gap is the price of exactness
+
+The crossover above has a structural cause, and it was measured directly rather than
+assumed. Stable libh3 finds cells by tracing the entire polygon boundary with cells and
+point-in-polygon testing every boundary cell plus its immediate neighbors, so its work
+scales with the perimeter measured in cells, not with the output size. Instrumenting a
+bit-identical reimplementation of the algorithm makes the imbalance concrete on the sweep
+box above: at res 4 the fill emits 1 cell but performs 43 point-in-polygon tests, at res 5
+it emits 9 cells for 92 tests, and the ratio only falls toward 1 as area outgrows
+perimeter (1.4 tests per emitted cell by res 8).
+
+Two prototypes were built to test whether that gap could be closed without giving up
+exactness. A managed orchestration of the identical algorithm (calling the same native
+primitives per cell, proven bit-identical to `polygonToCells` across every shape in the
+divergence corpus plus 600 fuzzed polygons) sheds the native path's fixed setup and runs
+19-32% faster than the binding on fills under a few tens of cells, but it stays 1.2-3.2x
+behind pocketken.H3 below the crossover: the candidate work is inherent to the algorithm,
+not to where it runs. The only approach that beat pocketken.H3 at every size was the one
+pocketken itself uses, flood fill from a single interior seed, and even with an exact
+point-in-polygon test it silently dropped cells on 6 of 30 fixed shapes and 3 of 600
+fuzzed polygons (thin features, holes, and antimeridian-crossing shapes defeat single-seed
+reachability).
+
+As far as we can measure, beating pocketken.H3 on small fills and returning the reference
+cell set are mutually exclusive. This binding keeps the reference cell set: neither
+prototype ships in the package, and `ToCells` remains a thin call into libh3.
+
 ## Allocation
 
 Managed allocation is where the native path wins universally: raw libh3 and the
