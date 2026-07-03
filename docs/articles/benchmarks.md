@@ -8,11 +8,11 @@ Every measurement below is produced by the in-repo benchmark project with
 [BenchmarkDotNet](https://benchmarkdotnet.org), comparing three implementations on
 identical inputs:
 
-- **Raw libh3 C** — direct P/Invoke into the bundled native `libh3`, no idiomatic
+- **Raw libh3 C**: direct P/Invoke into the bundled native `libh3`, no idiomatic
   layer. It is the *floor*: the fastest the C code can be called from .NET, and the
   baseline that isolates this binding's own marshalling overhead.
-- **H3.NET.Native** — this binding.
-- **[pocketken.H3](https://github.com/pocketken/H3.net)** 4.0.0 — the fully managed
+- **H3.NET.Native**: this binding.
+- **[pocketken.H3](https://github.com/pocketken/H3.net)** 4.0.0: the fully managed
   (NetTopologySuite-based) port, the managed library many teams run today.
 
 Absolute timings vary by hardware; **ratios are the stable signal**. The runs shown
@@ -30,8 +30,8 @@ v4.5.0.
 | `gridDisk` | **H3.NET.Native** | 1,115 ns | **1.09x** | 1,504 B |
 | `gridDisk` | pocketken.H3 | 1,709 ns | 1.67x | 6,576 B |
 
-The binding adds 1–9% over calling the C directly — the cost of the safe, idiomatic,
-exception-mapped surface — and stays well ahead of the managed port, which pays
+The binding adds 1–9% over calling the C directly (the cost of the safe, idiomatic,
+exception-mapped surface) and stays well ahead of the managed port, which pays
 25–67% more and allocates on every call.
 
 ![Indexing and traversal run within 1-9% of the raw libh3 C floor; pocketken.H3 pays 25-67% more](images/overhead-vs-raw.svg)
@@ -39,7 +39,7 @@ exception-mapped surface — and stays well ahead of the managed port, which pay
 ## Filling polygons: `polygonToCells`
 
 This is the one operation where a single headline number misleads. On a **small**
-polygon the native binding loses — but the reason is structural, and it inverts as
+polygon the native binding loses, but the reason is structural, and it inverts as
 the polygon grows.
 
 Stable libh3 sizes its internal working buffer from the polygon's **bounding box**,
@@ -53,7 +53,7 @@ this:
 | res-9 triangle (~55 cells) | pocketken.H3 | 35.2 µs | 0.36 | 28,232 B |
 
 But that fixed cost amortizes as the fill grows. Sweeping one fixed ~0.5° box over
-increasing resolution — so the output climbs from 1 cell to 156k — shows the real
+increasing resolution (so the output climbs from 1 cell to 156k) shows the real
 picture: pocketken.H3 wins on tiny outputs, the two cross at roughly **650 cells**,
 and the native binding leads by **~1.4–1.6x** from there on, while allocating
 **~19–46x less at every point**.
@@ -71,10 +71,10 @@ and the native binding leads by **~1.4–1.6x** from there on, while allocating
 ![polygonToCells time versus output cell count; H3.NET.Native overtakes pocketken.H3 past about 650 cells and leads 1.4-1.6x at scale](images/polygon-crossover.svg)
 
 Most real region-fill workloads (covering a neighborhood, tile, or service area at a
-useful resolution) sit well above the crossover — the regime where the native binding
+useful resolution) sit well above the crossover: the regime where the native binding
 is both faster and dramatically lighter on the GC.
 
-> Note: pocketken.H3 and libh3 do not always agree on the exact cells of a fill —
+> Note: pocketken.H3 and libh3 do not always agree on the exact cells of a fill;
 > the divergence is measured and quantified under
 > [Correctness and provenance](#correctness-and-provenance) below. The sweep above
 > compares wall-clock on the same input, not cell-set equality.
@@ -91,8 +91,8 @@ binding's indexing path allocate **nothing**, and the pooled polygon path drops 
 
 Performance only matters if the results are right. Because the binding calls the
 official Uber H3 C code directly rather than reimplementing it, its outputs *are* the
-reference outputs. A differential test corpus — generated from the official library
-via `h3-py` ≥ 4 (pinned to the bundled v4.5.0), with `h3-go` as a tiebreaker —
+reference outputs. A differential test corpus, generated from the official library
+via `h3-py` ≥ 4 (pinned to the bundled v4.5.0), with `h3-go` as a tiebreaker,
 confirms the marshalling layer preserves them across every supported platform:
 **37,454 assertions at time of writing, zero tolerated failures**. Cell and index
 results match exactly; geometric measures (areas, lengths) match within a tight
@@ -101,17 +101,17 @@ harness guards native memory usage.
 
 ### Polyfill divergence, measured
 
-The fill-agreement caveat above is quantified, not assumed. A 27-case matrix — six
+The fill-agreement caveat above is quantified, not assumed. A 27-case matrix, six
 shapes (the benchmark triangle and sweep box, a concave L, a box with a hole, an
 antimeridian-crossing quad, and a disjoint two-box multipolygon) swept across
-resolutions 4–11 — was filled by three implementations on identical inputs and
+resolutions 4–11, was filled by three implementations on identical inputs and
 compared by SHA-256 of the sorted cell sets. The oracle is `h3-py` 4.5.0, whose
 wheel bundles upstream libh3 4.5.0 exactly.
 
 | Implementation | Identical to upstream | Mismatches |
 | --- | --- | --- |
 | **H3.NET.Native** | **27 / 27 cases** | none |
-| pocketken.H3 4.0.0 | 20 / 27 cases | 7 — every one a strict subset (cells missed, never added) |
+| pocketken.H3 4.0.0 | 20 / 27 cases | 7: every one a strict subset (cells missed, never added) |
 
 The seven pocketken misses fall into two structural modes:
 
@@ -126,12 +126,12 @@ The seven pocketken misses fall into two structural modes:
   missing cell lies within one cell circumradius of a polygon edge. Its
   strict-interior point-in-polygon test over straight lines in lng/lat space
   rejects near-edge cell centers that libh3's containment convention includes.
-  Axis-aligned shapes — the boxes, the concave L, the hole, even the antimeridian
-  quad — matched the oracle exactly at every resolution.
+  Axis-aligned shapes (the boxes, the concave L, the hole, even the antimeridian
+  quad) matched the oracle exactly at every resolution.
 
 The per-case counts, set hashes, and exact differing cell IDs, plus both
-generators — the .NET harness that fills through this binding and pocketken.H3,
-and the `h3-py` oracle script — are committed under `tools/divergence-evidence/`.
+generators (the .NET harness that fills through this binding and pocketken.H3,
+and the `h3-py` oracle script), are committed under `tools/divergence-evidence/`.
 
 For supply-chain review, each release ships a [CycloneDX](https://cyclonedx.org) SBOM
 and a signed build-provenance attestation, and is published to nuget.org via **OIDC
@@ -148,6 +148,6 @@ dotnet run --project tests/H3.NET.Native.Benchmarks -c Release -- --filter '*'
 BenchmarkDotNet writes CSV and Markdown reports under
 `BenchmarkDotNet.Artifacts/results/`. The charts on this page are regenerated from
 those results by `tools/gen-benchmark-charts/generate_charts.py` (see its header for
-the exact steps). Benchmarks are informational and never gate CI — a tiny dry-run
-smoke runs there only to keep them building and runnable — and their shapes may
+the exact steps). Benchmarks are informational and never gate CI (a tiny dry-run
+smoke runs there only to keep them building and runnable), and their shapes may
 change while the binding is in preview.
