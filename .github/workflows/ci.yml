@@ -459,10 +459,16 @@ jobs:
           echo "ASAN_RT=$rt" >> "$GITHUB_ENV"
 
       # Preload libasan ONLY for this command (never for restore/build, which must
-      # not be instrumented). The soak exercises the scalar hot paths and the
-      # heap-owning FromCells success + pre-allocation error branches every
-      # iteration; a moderate iteration count keeps ASan's ~2-3x slowdown / extra
-      # RSS within runner limits while still stressing the buffer-sizing and
+      # not be instrumented), and run the xunit.v3 in-process runner executable
+      # directly instead of `dotnet test`: the VSTest path preloads ASan into its
+      # whole process tree (console + testhost + assembly-info child), and the
+      # assembly-info child's stdout JSON handshake is timing-sensitive under ASan
+      # ("Catastrophic failure: Test process did not return valid JSON", PR #35).
+      # Direct execution instruments exactly one process — the only one LSan needs
+      # to analyze. The soak exercises the scalar hot paths and the heap-owning
+      # FromCells success + pre-allocation error branches every iteration; a
+      # moderate iteration count keeps ASan's ~2-3x slowdown / extra RSS within
+      # runner limits while still stressing the buffer-sizing and
       # LinkedGeoPolygon teardown paths hard.
       - name: Managed soak under ASan/LSan
         env:
@@ -473,8 +479,8 @@ jobs:
           # LSan is the leak oracle in this job; the managed-heap bound stays active.
           H3_SOAK_CHECK_RSS: "0"
         run: |
-          dotnet test tests/H3.NET.Native.MemoryTests/H3.NET.Native.MemoryTests.csproj \
-            -c Release -f net10.0 --no-build --filter "Category=Soak"
+          dotnet exec tests/H3.NET.Native.MemoryTests/bin/Release/net10.0/H3.NET.Native.MemoryTests.dll \
+            -trait "Category=Soak"
 
   # Warn-only: prove the benchmarks project builds and runs a tiny smoke (a dry
   # BenchmarkDotNet job: one op per benchmark, no statistics). Never gates.
