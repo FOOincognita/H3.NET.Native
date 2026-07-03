@@ -136,9 +136,12 @@ jobs:
       - name: Test (net8.0)
         run: dotnet test H3.NET.Native.slnx -c Release -f net8.0 --no-build
 
-      # Code coverage (linux-x64 leg only, non-gating). Re-runs just the net10.0 test
-      # project under the MTP-native coverage extension (Microsoft.Testing.Extensions.CodeCoverage)
-      # and emits a cobertura report. Informational only: no thresholds, never fails the build.
+      # Code coverage (linux-x64 leg only). Re-runs just the net10.0 test project under
+      # the MTP-native coverage extension (Microsoft.Testing.Extensions.CodeCoverage) and
+      # emits a cobertura report that the "Enforce coverage threshold" step below gates on
+      # (overall line-rate and branch-rate must each be >= 80 percent). This step only
+      # produces and uploads the report; the threshold check is a separate step so the
+      # artifact still uploads even when the gate fails, keeping a failure diagnosable.
       # The Test steps above are unchanged and run identically on every leg; this extra step is
       # the sole opt-in to instrumentation. --results-directory is an MTP platform option, so it
       # must sit after the `--` separator; an absolute path lands the report deterministically
@@ -158,6 +161,41 @@ jobs:
           path: ${{ github.workspace }}/artifacts/coverage/h3.cobertura.xml
           retention-days: 7
           if-no-files-found: error
+
+      # Coverage gate (linux-x64 only). Parses the cobertura report emitted above and
+      # FAILS the job if the overall line-rate or branch-rate is below 80 percent. Uses
+      # only the python3 stdlib preinstalled on ubuntu-latest (no third-party actions, so
+      # the supply chain stays pinned). Runs AFTER the upload so the report is always
+      # captured; the measured percentages are printed so a failing run is diagnosable
+      # from the log alone.
+      - name: Enforce coverage threshold (line & branch >= 80%)
+        if: matrix.label == 'linux-x64'
+        run: |
+          python3 - "${{ github.workspace }}/artifacts/coverage/h3.cobertura.xml" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+
+          threshold = 0.80
+          root = ET.parse(sys.argv[1]).getroot()
+          line_rate = float(root.get("line-rate"))
+          branch_rate = float(root.get("branch-rate"))
+
+          print(f"line-rate   : {line_rate:.4f} ({line_rate * 100:.2f}%)")
+          print(f"branch-rate : {branch_rate:.4f} ({branch_rate * 100:.2f}%)")
+          print(f"threshold   : {threshold * 100:.2f}% (line and branch)")
+
+          failures = []
+          if line_rate < threshold:
+              failures.append(f"line-rate {line_rate * 100:.2f}% < {threshold * 100:.2f}%")
+          if branch_rate < threshold:
+              failures.append(f"branch-rate {branch_rate * 100:.2f}% < {threshold * 100:.2f}%")
+
+          if failures:
+              print("::error::coverage gate failed: " + "; ".join(failures))
+              sys.exit(1)
+
+          print("coverage gate passed")
+          PY
 
   # musl/alpine managed tests run via `docker run` (NOT a job `container:`) so the
   # JS-based actions (checkout, download-artifact) execute on the glibc host; only the

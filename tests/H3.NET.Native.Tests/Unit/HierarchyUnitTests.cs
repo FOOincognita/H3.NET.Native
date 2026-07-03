@@ -154,6 +154,16 @@ public sealed class HierarchyUnitTests
     }
 
     [Fact]
+    public void CellToChildren_ResolutionExceedingArrayMaxLength_ThrowsArgumentOutOfRange()
+    {
+        // cellToChildrenSize(res0, 15) is ~7^15 (~4.7e12) and returns E_SUCCESS; the
+        // managed guard rejects the would-be allocation before it overflows an array.
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(
+            () => FirstRes0Cell().CellToChildren(15));
+        Assert.Equal("childResolution", ex.ParamName);
+    }
+
+    [Fact]
     public void CellToChildrenInto_TooSmallDestination_ThrowsArgumentOutOfRange()
     {
         var cell = FirstRes0Cell();
@@ -163,6 +173,16 @@ public sealed class HierarchyUnitTests
         var ex = Assert.Throws<ArgumentOutOfRangeException>(
             () => cell.CellToChildrenInto(1, destination));
         Assert.Equal("destination", ex.ParamName);
+    }
+
+    [Fact]
+    public void CellToChildrenInto_ResolutionExceedingArrayMaxLength_ThrowsArgumentOutOfRange()
+    {
+        // The overflow guard precedes the destination-length guard, so an empty
+        // destination still surfaces the childResolution overflow.
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(
+            () => FirstRes0Cell().CellToChildrenInto(15, Span<H3Index>.Empty));
+        Assert.Equal("childResolution", ex.ParamName);
     }
 
     [Theory]
@@ -249,6 +269,40 @@ public sealed class HierarchyUnitTests
 
         var ex = Assert.Throws<H3Exception>(() => H3Index.UncompactCells(children, 0));
         Assert.Equal(12u, ex.ErrorCode);
+    }
+
+    [Fact]
+    public void UncompactCells_ResolutionExceedingArrayMaxLength_ThrowsArgumentOutOfRange()
+    {
+        // uncompactCellsSize([res0], 15) sums to ~4.7e12, above Array.MaxLength; the guard
+        // rejects the allocation before it overflows.
+        var cells = new[] { FirstRes0Cell() };
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(
+            () => H3Index.UncompactCells(cells, 15));
+        Assert.Equal("resolution", ex.ParamName);
+    }
+
+    [Fact]
+    public void UncompactCellsInto_ResolutionExceedingArrayMaxLength_ThrowsArgumentOutOfRange()
+    {
+        // The overflow guard precedes the destination-length guard, so an empty
+        // destination still surfaces the resolution overflow.
+        var cells = new[] { FirstRes0Cell() };
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(
+            () => H3Index.UncompactCellsInto(cells, 15, Span<H3Index>.Empty));
+        Assert.Equal("resolution", ex.ParamName);
+    }
+
+    [Fact]
+    public void UncompactCellsInto_TooSmallDestination_ThrowsArgumentOutOfRange()
+    {
+        // A res-0 parent uncompacted to res 1 needs 7 slots; a 6-slot span is one short,
+        // so the destination-length guard fires (the size is well within Array.MaxLength).
+        var cells = new[] { FirstRes0Cell() };
+        var destination = new H3Index[6];
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(
+            () => H3Index.UncompactCellsInto(cells, 1, destination));
+        Assert.Equal("destination", ex.ParamName);
     }
 
     // ---- Null sentinel -----------------------------------------------------
