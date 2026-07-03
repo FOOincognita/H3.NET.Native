@@ -106,13 +106,17 @@ public readonly record struct LatLng(double LatitudeDegrees, double LongitudeDeg
         return NativeMethods.GreatCircleDistanceM(na, nb);
     }
 
-    /// <summary>Converts an angle in degrees to radians via the native library.</summary>
-    /// <param name="degrees">The angle in degrees.</param>
+    /// <summary>
+    /// Converts an angle from degrees to radians.
+    /// </summary>
+    /// <param name="degrees">The angle to convert, in degrees.</param>
     /// <returns>The equivalent angle in radians.</returns>
-    internal static double DegsToRads(double degrees) => NativeMethods.DegsToRads(degrees);
+    public static double DegsToRads(double degrees) => NativeMethods.DegsToRads(degrees);
 
-    /// <summary>Converts an angle in radians to degrees via the native library.</summary>
-    /// <param name="radians">The angle in radians.</param>
+    /// <summary>
+    /// Converts an angle from radians to degrees.
+    /// </summary>
+    /// <param name="radians">The angle to convert, in radians.</param>
     /// <returns>The equivalent angle in degrees.</returns>
-    internal static double RadsToDegs(double radians) => NativeMethods.RadsToDegs(radians);
+    public static double RadsToDegs(double radians) => NativeMethods.RadsToDegs(radians);
 }

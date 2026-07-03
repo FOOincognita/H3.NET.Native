@@ -347,7 +347,8 @@ internal static unsafe partial class NativeMethods
     [LibraryImport("h3", EntryPoint = "greatCircleDistanceM")]
     internal static partial double GreatCircleDistanceM(in NativeLatLng a, in NativeLatLng b);
 
-    // BARE double, NO H3Error: never throws. Internal-only conversion helpers.
+    // BARE double, NO H3Error: never throws. Back the public LatLng.DegsToRads /
+    // RadsToDegs angle-conversion helpers.
     [LibraryImport("h3", EntryPoint = "degsToRads")]
     internal static partial double DegsToRads(double degrees);
 

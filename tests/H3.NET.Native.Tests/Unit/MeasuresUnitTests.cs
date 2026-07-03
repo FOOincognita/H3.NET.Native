@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using H3.NET.Native.Interop;
 using H3.NET.Native.Tests.Fixtures;
 using Xunit;
 
@@ -14,7 +15,7 @@ namespace H3.NET.Native.Tests.Unit;
 /// measures (GetHexagonAreaAvgKm2 / M2, GetHexagonEdgeLengthAvgKm / M), GetNumCells, the
 /// constant-count collection fills (GetRes0Cells / Into, GetPentagons / Into), the
 /// H3DirectedEdge edge-length trio (EdgeLengthRads / Km / M), and the LatLng static
-/// great-circle distances plus the internal DegsToRads / RadsToDegs helpers.
+/// great-circle distances plus the public DegsToRads / RadsToDegs helpers.
 ///
 /// Each member is exercised on its happy path plus every documented guard / error arm.
 /// Error codes pinned against libh3 4.5.0 (the binding faithfully surfaces the raw native
@@ -407,7 +408,7 @@ public sealed class MeasuresUnitTests
         Assert.Equal(Math.PI / 2.0, rads, 1e-9);
     }
 
-    // ---- (6) DegsToRads / RadsToDegs (internal) ----------------------------
+    // ---- (6) DegsToRads / RadsToDegs (public) ------------------------------
 
     [Theory]
     [InlineData(0.0)]
@@ -428,9 +429,38 @@ public sealed class MeasuresUnitTests
     }
 
     [Fact]
+    public void DegsToRads_90_IsHalfPi()
+    {
+        Assert.Equal(Math.PI / 2.0, LatLng.DegsToRads(90.0), 1e-12);
+    }
+
+    [Fact]
     public void RadsToDegs_Pi_Is180()
     {
         Assert.Equal(180.0, LatLng.RadsToDegs(Math.PI), 1e-12);
+    }
+
+    // The public helpers forward straight to native; parity pins that no managed
+    // transformation slips in between the wrapper and libh3's degsToRads / radsToDegs.
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(45.0)]
+    [InlineData(-90.0)]
+    [InlineData(180.0)]
+    [InlineData(360.0)]
+    public void DegsToRads_MatchesNative(double degrees)
+    {
+        Assert.Equal(NativeMethods.DegsToRads(degrees), LatLng.DegsToRads(degrees));
+    }
+
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    [InlineData(-3.14159)]
+    [InlineData(6.28318)]
+    public void RadsToDegs_MatchesNative(double radians)
+    {
+        Assert.Equal(NativeMethods.RadsToDegs(radians), LatLng.RadsToDegs(radians));
     }
 
     // ---- (7) GetRes0Cells / GetRes0CellsInto -------------------------------

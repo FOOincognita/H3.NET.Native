@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CsCheck;
+using H3.NET.Native.Interop;
 using H3.NET.Native.Tests.Fixtures;
 using Xunit;
 
@@ -13,9 +14,10 @@ namespace H3.NET.Native.Tests.Edge;
 /// Francisco sample point: the km/m and km2/m2 unit ratios hold for every cell area and
 /// edge length; a point's distance to itself is exactly zero and an adjacent cell center
 /// is on the order of twice the average hexagon edge length; the children areas of a
-/// parent sum back to the parent's area (area additivity); DegsToRads / RadsToDegs are
-/// mutual inverses over finite doubles (CsCheck); and a junk-value sweep over CellArea* /
-/// EdgeLength* never segfaults.
+/// parent sum back to the parent's area (area additivity); the public DegsToRads /
+/// RadsToDegs are mutual inverses over finite doubles and forward bit-for-bit to their
+/// native counterparts (CsCheck); and a junk-value sweep over CellArea* / EdgeLength*
+/// never segfaults.
 /// </summary>
 public sealed class MeasuresRoundTripTests
 {
@@ -135,6 +137,25 @@ public sealed class MeasuresRoundTripTests
                 double roundTripped = LatLng.DegsToRads(LatLng.RadsToDegs(radians));
                 Assert.Equal(radians, roundTripped, 1e-9);
             },
+            iter: Iterations);
+    }
+
+    // The public wrappers must forward straight to native with no managed reimplementation:
+    // over the sampled domain the results are bit-for-bit identical to libh3's degsToRads /
+    // radsToDegs.
+    [Fact]
+    public void DegsToRads_MatchesNative()
+    {
+        Gen.Double[-720.0, 720.0].Sample(
+            degrees => Assert.Equal(NativeMethods.DegsToRads(degrees), LatLng.DegsToRads(degrees)),
+            iter: Iterations);
+    }
+
+    [Fact]
+    public void RadsToDegs_MatchesNative()
+    {
+        Gen.Double[-12.0, 12.0].Sample(
+            radians => Assert.Equal(NativeMethods.RadsToDegs(radians), LatLng.RadsToDegs(radians)),
             iter: Iterations);
     }
 
