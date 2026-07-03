@@ -30,6 +30,14 @@
   <!-- Versioning via MinVer (Git-tag driven, prefix "v") -->
   <PropertyGroup>
     <MinVerTagPrefix>v</MinVerTagPrefix>
+    <!--
+      Untagged builds (PRs, main, local dev) get X.Y.Z-pr.0.<height>; the commit-height
+      suffix makes each commit on a linear history a distinct version. Tagged (release)
+      builds ignore this and use the exact tag. The commit SHA lives in
+      AssemblyInformationalVersion (SDK appends +<sha> via Source Link); NuGet strips
+      the +metadata, so the package version stays clean.
+    -->
+    <MinVerDefaultPreReleaseIdentifiers>pr.0</MinVerDefaultPreReleaseIdentifiers>
   </PropertyGroup>
 
   <!-- Shared authorship and repository metadata (package-id set per project) -->

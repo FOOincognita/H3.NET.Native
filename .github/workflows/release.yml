@@ -14,6 +14,14 @@ name: Release
 on:
   push:
     tags: ['v*']
+  # Dispatched by version-bump.yml on a tag ref (refs/tags/vX.Y.Z) because a tag
+  # pushed with GITHUB_TOKEN does NOT fire the push:tags trigger above. On a
+  # workflow_dispatch targeting a tag ref, github.ref/github.ref_name resolve to that
+  # tag exactly as they do for a push, so every job below (MinVer versioning off the
+  # tag, SBOM, attestation, OIDC nuget push, github-release using github.ref_name)
+  # behaves identically. The OIDC trusted-publisher policy binds to this workflow file
+  # + the `release` environment, not to the event type, so it still matches.
+  workflow_dispatch:
 
 # Top-level least privilege; individual jobs elevate only the scopes they require.
 permissions:

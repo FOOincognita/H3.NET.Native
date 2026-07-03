@@ -1,0 +1,176 @@
+name: Version bump
+
+# Label-driven release tagging.
+#
+# When a PR merges to `main` carrying exactly one of the labels
+# `release:patch` / `release:minor` / `release:major`, this workflow computes the
+# next vX.Y.Z from the latest existing v* tag and pushes an annotated tag.
+# No release label => no release. A manual `workflow_dispatch` (bump: patch|minor|major)
+# is the escape hatch.
+#
+# WHY it then calls `gh workflow run release.yml` instead of relying on the pushed tag:
+# a tag pushed with the default GITHUB_TOKEN does NOT start workflows listening on
+# `push: tags` (GitHub blocks GITHUB_TOKEN-initiated events from triggering further
+# workflow runs, to prevent recursion). So we push the tag AND explicitly dispatch
+# release.yml on that tag ref. release.yml stays the top-level workflow, so the
+# nuget.org OIDC trusted-publisher policy (bound to workflow file `release.yml` +
+# environment `release`, NOT to the event type) still matches. Requires `actions: write`
+# here and a `workflow_dispatch` trigger on release.yml.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+# Least privilege at the top level; the bump job elevates only what it needs.
+permissions:
+  contents: read
+
+# Serialize bumps so two near-simultaneous merges cannot race the tag computation
+# (the second run recomputes the latest tag only after the first has pushed).
+concurrency:
+  group: version-bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: bump
+    runs-on: ubuntu-latest
+    # Run only on a manual dispatch, or when a PR was actually MERGED into main
+    # (closed-without-merge is ignored).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main')
+    permissions:
+      contents: write   # push the annotated tag
+      actions: write    # gh workflow run release.yml
+    steps:
+      # Resolve the bump type up front. Dispatch => the chosen input. PR merge =>
+      # scan labels: zero release:* labels means "no release" (clean skip); more than
+      # one fails loudly; exactly one selects the bump. The PR title/labels are never
+      # interpolated into shell — jq reads them from the event payload file.
+      - name: Decide bump
+        id: decide
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_BUMP: ${{ github.event.inputs.bump }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "bump=$DISPATCH_BUMP" >> "$GITHUB_OUTPUT"
+            echo "Manual dispatch: bump=$DISPATCH_BUMP"
+            exit 0
+          fi
+          count=$(jq '[.pull_request.labels[]?.name | select(test("^release:(patch|minor|major)$"))] | length' "$GITHUB_EVENT_PATH")
+          if [ "$count" -eq 0 ]; then
+            echo "No release:{patch,minor,major} label present; nothing to release."
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$count" -gt 1 ]; then
+            echo "::error::Multiple release labels found; exactly one of release:patch|minor|major is allowed."
+            exit 1
+          fi
+          label=$(jq -r 'first(.pull_request.labels[]?.name | select(test("^release:(patch|minor|major)$")))' "$GITHUB_EVENT_PATH")
+          echo "should_release=true" >> "$GITHUB_OUTPUT"
+          echo "bump=${label#release:}" >> "$GITHUB_OUTPUT"
+          echo "Label-driven: bump=${label#release:}"
+
+      # For the PR-merge path, check out the actual merge/squash commit on main:
+      # the default ref for pull_request:closed is the synthetic refs/pull/N/merge
+      # test-merge commit, which is NOT on main -- tagging it would put the release
+      # tag on an unreachable commit. Dispatch runs use the selected ref (main).
+      - name: Checkout (full history + tags)
+        if: steps.decide.outputs.should_release == 'true'
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || github.event.pull_request.merge_commit_sha }}
+
+      # Compute vX.Y.Z from the greatest existing strict-semver v tag, then refuse if
+      # the target tag somehow already exists.
+      - name: Compute next version
+        id: version
+        if: steps.decide.outputs.should_release == 'true'
+        env:
+          BUMP: ${{ steps.decide.outputs.bump }}
+        run: |
+          set -euo pipefail
+          latest=$(git tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1 || true)
+          if [ -z "$latest" ]; then latest="v0.0.0"; fi
+          ver="${latest#v}"
+          major="${ver%%.*}"; rest="${ver#*.}"; minor="${rest%%.*}"; patch="${rest#*.}"
+          case "$BUMP" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+            *) echo "::error::Invalid bump '$BUMP'"; exit 1 ;;
+          esac
+          next="v${major}.${minor}.${patch}"
+          if git rev-parse -q --verify "refs/tags/$next" >/dev/null; then
+            echo "::error::Computed tag $next already exists; aborting."
+            exit 1
+          fi
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "next=$next" >> "$GITHUB_OUTPUT"
+          echo "Old tag: $latest -> New tag: $next"
+
+      - name: Create and push annotated tag
+        if: steps.decide.outputs.should_release == 'true'
+        env:
+          NEXT: ${{ steps.version.outputs.next }}
+          PREV: ${{ steps.version.outputs.latest }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          ACTOR: ${{ github.actor }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            msg="Release ${NEXT} (manual dispatch by ${ACTOR}; previous ${PREV})"
+          else
+            msg="Release ${NEXT} (PR #${PR_NUMBER}: ${PR_TITLE}; previous ${PREV})"
+          fi
+          git tag -a "$NEXT" -m "$msg"
+          git push origin "refs/tags/$NEXT"
+
+      # Explicitly start release.yml on the freshly pushed tag ref (see header: the
+      # GITHUB_TOKEN-pushed tag will not trigger release.yml's push:tags listener).
+      - name: Trigger release workflow on the new tag
+        if: steps.decide.outputs.should_release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEXT: ${{ steps.version.outputs.next }}
+        run: |
+          set -euo pipefail
+          gh workflow run release.yml --ref "$NEXT"
+          echo "Dispatched release.yml on ${NEXT}"
+
+      - name: Job summary
+        if: steps.decide.outputs.should_release == 'true'
+        env:
+          PREV: ${{ steps.version.outputs.latest }}
+          NEXT: ${{ steps.version.outputs.next }}
+        run: |
+          {
+            echo "### Version bump"
+            echo ""
+            echo "| Old tag | New tag |"
+            echo "| --- | --- |"
+            echo "| \`${PREV}\` | \`${NEXT}\` |"
+            echo ""
+            echo "Pushed \`${NEXT}\` and dispatched \`release.yml\` on it."
+          } >> "$GITHUB_STEP_SUMMARY"
