@@ -181,8 +181,13 @@ jobs:
     needs: native-build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      # fetch-depth: 0 so MinVer sees the full history + tags and stamps the real
+      # pre-release version (X.Y.Z-pr.0.<height>) onto the packed nupkg; publish-prerelease
+      # ships that exact artifact to GitHub Packages.
+      - name: Checkout (full history + tags)
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
 
       - name: Download native linux-x64
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -228,6 +233,54 @@ jobs:
           path: artifacts/feed
           retention-days: 1
           if-no-files-found: error
+
+  # Publish the MinVer auto pre-release (X.Y.Z-pr.0.<height>) to THIS repo's GitHub
+  # Packages NuGet feed on non-fork PR builds, so reviewers can consume per-commit
+  # builds without polluting the public nuget.org listing. Fork PRs are SKIPPED: their
+  # GITHUB_TOKEN is read-only, so packages:write is unavailable. This job depends on
+  # pack-and-restore only to reuse its verified nupkg artifact; consumer-smoke depends
+  # on pack-and-restore (not this job), so a push hiccup here never blocks consumers.
+  publish-prerelease:
+    name: publish-prerelease
+    needs: pack-and-restore
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Download nupkg feed
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: nupkg-feed
+          path: artifacts/feed
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          dotnet-version: 10.0.301
+
+      # --skip-duplicate keeps re-runs idempotent (GitHub Packages versions are
+      # immutable); --no-symbols avoids a snupkg push (GH Packages has no symbol server).
+      - name: Push pre-release to GitHub Packages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          dotnet nuget add source \
+            --username "$ACTOR" \
+            --password "$GH_TOKEN" \
+            --store-password-in-clear-text \
+            --name github \
+            "https://nuget.pkg.github.com/FOOincognita/index.json"
+          dotnet nuget push "artifacts/feed/*.nupkg" \
+            --source github \
+            --api-key "$GH_TOKEN" \
+            --no-symbols \
+            --skip-duplicate
 
   # Validate the true PackageReference native-propagation path (no eng/ help): restore
   # the QuickStart sample from the local feed and assert the expected res-9 SF cell.
