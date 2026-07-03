@@ -52,11 +52,11 @@ The library follows [Semantic Versioning](https://semver.org). Versions are deri
 
 **Correctness** is validated against the reference implementation, not against other managed ports: the differential test corpus is generated from the official **Uber H3 C library** (via `h3-py` ≥ 4, pinned to the bundled v4.5.0), with **h3-go** available as a tiebreaker and a pure-C `valgrind` harness guarding native memory usage. Because the binding calls that C code directly rather than reimplementing it, its outputs *are* the reference outputs; the corpus (tens of thousands of assertions per run, zero tolerated failures) confirms the marshalling layer preserves them across every supported platform. Each release also ships a [CycloneDX](https://cyclonedx.org) SBOM and a signed build-provenance attestation, and is published to nuget.org via OIDC trusted publishing (no long-lived API keys).
 
-**Performance** is measured with [BenchmarkDotNet](https://benchmarkdotnet.org). The benchmark project compares three implementations across the same workloads — point indexing (`latLngToCell`), `gridDisk`, and `polygonToCells`:
+**Performance** is measured with [BenchmarkDotNet](https://benchmarkdotnet.org). The benchmark project compares three implementations across the same workloads, point indexing (`latLngToCell`), `gridDisk`, and `polygonToCells`:
 
-- **Raw libh3 C** — direct P/Invoke into the bundled native `libh3` with no idiomatic layer; the floor that isolates this binding's own marshalling overhead. It is the per-category baseline for `latLngToCell` and `gridDisk`.
-- **H3.NET.Native** — this binding.
-- **[pocketken.H3](https://github.com/pocketken/H3.net)** — the fully managed (NetTopologySuite-based) port, the managed library many teams run today.
+- **Raw libh3 C**: direct P/Invoke into the bundled native `libh3` with no idiomatic layer; the floor that isolates this binding's own marshalling overhead. It is the per-category baseline for `latLngToCell` and `gridDisk`.
+- **H3.NET.Native**: this binding.
+- **[pocketken.H3](https://github.com/pocketken/H3.net)**: the fully managed (NetTopologySuite-based) port, the managed library many teams run today.
 
 `polygonToCells` has no raw baseline (its C entry takes a `GeoPolygon*` whose marshalling would just duplicate the binding), so the binding is the baseline there and pocketken is measured against it.
 
@@ -79,11 +79,11 @@ Representative results (Apple M3 Pro, .NET 10, BenchmarkDotNet 0.15.8; absolute 
 | H3.NET.Native ToCells | PolygonToCells\* | 98.8 µs | 1.00 | 608 B |
 | pocketken.H3 Polyfill.Fill | PolygonToCells\* | 35.2 µs | 0.36 | 28,232 B |
 
-Indexing and traversal sit essentially on the raw-C floor (`latLngToCell` 1.01x, `gridDisk` 1.09x) with far less managed allocation than pocketken.H3 — and none at all on the indexing path.
+Indexing and traversal sit essentially on the raw-C floor (`latLngToCell` 1.01x, `gridDisk` 1.09x) with far less managed allocation than pocketken.H3, and none at all on the indexing path.
 
-\* The `polygonToCells` row is a **small** polygon (a res-9, ~55-cell triangle), the one regime where the native binding loses: stable libh3 sizes its working buffer from the polygon's *bounding box*, not its cell count, so a small fill pays a fixed setup cost. That cost amortizes as the fill grows — **the native binding overtakes pocketken.H3 past ~650 output cells and leads by ~1.4–1.6x at scale**, while allocating ~19–46x less throughout the sweep:
+\* The `polygonToCells` row is a **small** polygon (a res-9, ~55-cell triangle), the one regime where the native binding loses: stable libh3 sizes its working buffer from the polygon's *bounding box*, not its cell count, so a small fill pays a fixed setup cost. That cost amortizes as the fill grows: **the native binding overtakes pocketken.H3 past ~650 output cells and leads by ~1.4–1.6x at scale**, while allocating ~19–46x less throughout the sweep:
 
-![polygonToCells time vs output cell count — H3.NET.Native overtakes pocketken.H3 past ~650 cells and leads 1.4-1.6x at scale](https://raw.githubusercontent.com/FOOincognita/H3.NET.Native/main/docs/articles/images/polygon-crossover.png)
+![polygonToCells time vs output cell count; H3.NET.Native overtakes pocketken.H3 past ~650 cells and leads 1.4-1.6x at scale](https://raw.githubusercontent.com/FOOincognita/H3.NET.Native/main/docs/articles/images/polygon-crossover.png)
 
 Full methodology, the resolution sweep, per-operation allocation charts, and the correctness/provenance detail: **[Benchmarks](https://FOOincognita.github.io/H3.NET.Native/articles/benchmarks.html)**.
 
