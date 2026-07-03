@@ -402,6 +402,10 @@ jobs:
         env:
           LD_PRELOAD: ${{ env.ASAN_RT }}
           H3_SOAK_ITERS: "300000"
+          # ASan legitimately inflates RSS (shadow memory, redzones, freed-memory
+          # quarantine), so the soak's RSS-growth heuristic false-positives here.
+          # LSan is the leak oracle in this job; the managed-heap bound stays active.
+          H3_SOAK_CHECK_RSS: "0"
         run: |
           dotnet test tests/H3.NET.Native.MemoryTests/H3.NET.Native.MemoryTests.csproj \
             -c Release -f net10.0 --no-build --filter "Category=Soak"
