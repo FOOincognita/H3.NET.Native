@@ -1,0 +1,35 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Divergence-evidence harness: fills the canonical polygon matrix through this binding and pocketken.H3 and emits the cell-set data joined against the h3-py oracle (see ../gen_oracle.py). Not part of the solution; build/run standalone. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Throwaway harness: do not fight the repo's locked-mode restore. -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <RestoreLockedMode>false</RestoreLockedMode>
+    <!-- Silence doc/analyzer noise for a scratch tool. -->
+    <NoWarn>$(NoWarn);CS1591;CA1852;CA1305;CA1307;CA1002;CA1062;CA2007;CA1031;MA0011;MA0004;CA5350</NoWarn>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <RunAnalyzers>false</RunAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../src/H3.NET.Native/H3.NET.Native.csproj" />
+  </ItemGroup>
+
+  <!-- Central Package Management is ON: omit Version attributes. -->
+  <ItemGroup>
+    <PackageReference Include="pocketken.H3" />
+    <PackageReference Include="NetTopologySuite" />
+  </ItemGroup>
+
+  <!-- Copy the host-RID libh3 next to the harness so the binding can load it. -->
+  <Import Project="../../../eng/H3.NET.Native.targets" />
+
+</Project>

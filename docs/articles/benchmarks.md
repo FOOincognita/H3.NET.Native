@@ -74,10 +74,10 @@ Most real region-fill workloads (covering a neighborhood, tile, or service area 
 useful resolution) sit well above the crossover — the regime where the native binding
 is both faster and dramatically lighter on the GC.
 
-> Note: pocketken.H3 and libh3 do not always agree on the exact boundary cells of a
-> fill (this binding matches libh3 exactly; investigating the pocketken delta is
-> tracked separately). The sweep above compares wall-clock on the same input, not
-> cell-set equality.
+> Note: pocketken.H3 and libh3 do not always agree on the exact cells of a fill —
+> the divergence is measured and quantified under
+> [Correctness and provenance](#correctness-and-provenance) below. The sweep above
+> compares wall-clock on the same input, not cell-set equality.
 
 ## Allocation
 
@@ -98,6 +98,40 @@ confirms the marshalling layer preserves them across every supported platform:
 results match exactly; geometric measures (areas, lengths) match within a tight
 floating-point tolerance that accounts for per-platform `libm`. A pure-C `valgrind`
 harness guards native memory usage.
+
+### Polyfill divergence, measured
+
+The fill-agreement caveat above is quantified, not assumed. A 27-case matrix — six
+shapes (the benchmark triangle and sweep box, a concave L, a box with a hole, an
+antimeridian-crossing quad, and a disjoint two-box multipolygon) swept across
+resolutions 4–11 — was filled by three implementations on identical inputs and
+compared by SHA-256 of the sorted cell sets. The oracle is `h3-py` 4.5.0, whose
+wheel bundles upstream libh3 4.5.0 exactly.
+
+| Implementation | Identical to upstream | Mismatches |
+| --- | --- | --- |
+| **H3.NET.Native** | **27 / 27 cases** | none |
+| pocketken.H3 4.0.0 | 20 / 27 cases | 7 — every one a strict subset (cells missed, never added) |
+
+The seven pocketken misses fall into two structural modes:
+
+- **Disjoint multipolygons are silently truncated.** A single `Polyfill.Fill` over
+  an NTS `MultiPolygon` of two disjoint boxes returns only one component (12 of 23
+  cells at res 8; 564 of 1,128 at res 10): the fill flood-seeds from one interior
+  point and expands only through grid-adjacent cells, so it can never reach the
+  second component. Filling each polygon separately and unioning the results is
+  correct and matched the oracle exactly.
+- **Near-boundary cells are lost along slanted edges.** On the res-9 benchmark
+  triangle pocketken returns 51 cells to the oracle's 55 (at res 8, 1 of 7); every
+  missing cell lies within one cell circumradius of a polygon edge. Its
+  strict-interior point-in-polygon test over straight lines in lng/lat space
+  rejects near-edge cell centers that libh3's containment convention includes.
+  Axis-aligned shapes — the boxes, the concave L, the hole, even the antimeridian
+  quad — matched the oracle exactly at every resolution.
+
+The per-case counts, set hashes, and exact differing cell IDs, plus both
+generators — the .NET harness that fills through this binding and pocketken.H3,
+and the `h3-py` oracle script — are committed under `tools/divergence-evidence/`.
 
 For supply-chain review, each release ships a [CycloneDX](https://cyclonedx.org) SBOM
 and a signed build-provenance attestation, and is published to nuget.org via **OIDC
