@@ -1,0 +1,1374 @@
+{
+  "generated": "2026-07-03",
+  "question": "Which polyfill implementations match upstream libh3 4.5.0 (via h3-py 4.5.0, the oracle)?",
+  "method": "Center-containment fills of a 27-case matrix (6 shapes x resolutions) by three implementations on identical inputs. Cell sets compared by SHA-256 of the sorted lowercase-hex IDs.",
+  "implementations": {
+    "native": "H3.NET.Native (this binding, libh3 4.5.0), H3Polygon.ToCells",
+    "pocketken": "pocketken.H3 4.0.0, Polyfill.Fill(VertexTestMode.Center)",
+    "h3py": "h3-py 4.5.0 wrapping upstream libh3 4.5.0 (oracle), h3shape_to_cells"
+  },
+  "coordinates": {
+    "sf-triangle": {
+      "shell": [
+        [
+          37.81331899998324,
+          -122.40898669999721
+        ],
+        [
+          37.78663020000072,
+          -122.3805436999997
+        ],
+        [
+          37.71980619999785,
+          -122.35447369999936
+        ]
+      ],
+      "holes": []
+    },
+    "sweep-box": {
+      "shell": [
+        [
+          37.525,
+          -122.668
+        ],
+        [
+          37.525,
+          -122.168
+        ],
+        [
+          38.025,
+          -122.168
+        ],
+        [
+          38.025,
+          -122.668
+        ]
+      ],
+      "holes": []
+    },
+    "lshape": {
+      "shell": [
+        [
+          37.8,
+          -122.46
+        ],
+        [
+          37.8,
+          -122.4
+        ],
+        [
+          37.76,
+          -122.4
+        ],
+        [
+          37.76,
+          -122.43
+        ],
+        [
+          37.72,
+          -122.43
+        ],
+        [
+          37.72,
+          -122.46
+        ]
+      ],
+      "holes": []
+    },
+    "hole-box": {
+      "shell": [
+        [
+          37.81,
+          -122.47
+        ],
+        [
+          37.81,
+          -122.37
+        ],
+        [
+          37.71,
+          -122.37
+        ],
+        [
+          37.71,
+          -122.47
+        ]
+      ],
+      "holes": [
+        [
+          [
+            37.78,
+            -122.44
+          ],
+          [
+            37.78,
+            -122.4
+          ],
+          [
+            37.74,
+            -122.4
+          ],
+          [
+            37.74,
+            -122.44
+          ]
+        ]
+      ]
+    },
+    "transmeridian": {
+      "shell": [
+        [
+          5.0,
+          179.8
+        ],
+        [
+          5.0,
+          -179.8
+        ],
+        [
+          4.6,
+          -179.8
+        ],
+        [
+          4.6,
+          179.8
+        ]
+      ],
+      "holes": []
+    },
+    "multi-2box": {
+      "boxA": [
+        [
+          37.8,
+          -122.46
+        ],
+        [
+          37.8,
+          -122.43
+        ],
+        [
+          37.77,
+          -122.43
+        ],
+        [
+          37.77,
+          -122.46
+        ]
+      ],
+      "boxB": [
+        [
+          37.75,
+          -122.41
+        ],
+        [
+          37.75,
+          -122.38
+        ],
+        [
+          37.72,
+          -122.38
+        ],
+        [
+          37.72,
+          -122.41
+        ]
+      ]
+    }
+  },
+  "results": [
+    {
+      "case_id": "hole-box",
+      "res": 7,
+      "h3py": {
+        "count": 17,
+        "sha256": "cdb57c86da3d48cff4f50086b41a0a02c3c95b6af2e342c67cb546f53bc0e392"
+      },
+      "native": {
+        "count": 17,
+        "sha256": "cdb57c86da3d48cff4f50086b41a0a02c3c95b6af2e342c67cb546f53bc0e392"
+      },
+      "pocketken": {
+        "count": 17,
+        "sha256": "cdb57c86da3d48cff4f50086b41a0a02c3c95b6af2e342c67cb546f53bc0e392"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "hole-box",
+      "res": 8,
+      "h3py": {
+        "count": 107,
+        "sha256": "cb4b847244e3f67339dfb3e2a7e62e02e123f292dde89d4213f2a140cd22b94e"
+      },
+      "native": {
+        "count": 107,
+        "sha256": "cb4b847244e3f67339dfb3e2a7e62e02e123f292dde89d4213f2a140cd22b94e"
+      },
+      "pocketken": {
+        "count": 107,
+        "sha256": "cb4b847244e3f67339dfb3e2a7e62e02e123f292dde89d4213f2a140cd22b94e"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "hole-box",
+      "res": 9,
+      "h3py": {
+        "count": 751,
+        "sha256": "937a6bef4361e3118f3de30400bbac1e808a473191b9ad0688737f44de96899c"
+      },
+      "native": {
+        "count": 751,
+        "sha256": "937a6bef4361e3118f3de30400bbac1e808a473191b9ad0688737f44de96899c"
+      },
+      "pocketken": {
+        "count": 751,
+        "sha256": "937a6bef4361e3118f3de30400bbac1e808a473191b9ad0688737f44de96899c"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "lshape",
+      "res": 7,
+      "h3py": {
+        "count": 5,
+        "sha256": "9b8d6bee4d07819026b9d2178569c461eb61e31c7c86a26aa4a1e6690cdb3dcf"
+      },
+      "native": {
+        "count": 5,
+        "sha256": "9b8d6bee4d07819026b9d2178569c461eb61e31c7c86a26aa4a1e6690cdb3dcf"
+      },
+      "pocketken": {
+        "count": 5,
+        "sha256": "9b8d6bee4d07819026b9d2178569c461eb61e31c7c86a26aa4a1e6690cdb3dcf"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "lshape",
+      "res": 8,
+      "h3py": {
+        "count": 47,
+        "sha256": "db1f676d01c876ac186e3679e45ad06367318e765db10ea7ff70be0e9567406e"
+      },
+      "native": {
+        "count": 47,
+        "sha256": "db1f676d01c876ac186e3679e45ad06367318e765db10ea7ff70be0e9567406e"
+      },
+      "pocketken": {
+        "count": 47,
+        "sha256": "db1f676d01c876ac186e3679e45ad06367318e765db10ea7ff70be0e9567406e"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "lshape",
+      "res": 9,
+      "h3py": {
+        "count": 321,
+        "sha256": "f8f5975e2bbcca8bd779e8225a83eb37fb4ad7d5afadc7193ce4e6f577d423e6"
+      },
+      "native": {
+        "count": 321,
+        "sha256": "f8f5975e2bbcca8bd779e8225a83eb37fb4ad7d5afadc7193ce4e6f577d423e6"
+      },
+      "pocketken": {
+        "count": 321,
+        "sha256": "f8f5975e2bbcca8bd779e8225a83eb37fb4ad7d5afadc7193ce4e6f577d423e6"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "lshape",
+      "res": 10,
+      "h3py": {
+        "count": 2251,
+        "sha256": "d7c666c77edd8c96af5b6198c58dcff13beab4e8648cd380201d99f848cb8a23"
+      },
+      "native": {
+        "count": 2251,
+        "sha256": "d7c666c77edd8c96af5b6198c58dcff13beab4e8648cd380201d99f848cb8a23"
+      },
+      "pocketken": {
+        "count": 2251,
+        "sha256": "d7c666c77edd8c96af5b6198c58dcff13beab4e8648cd380201d99f848cb8a23"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "multi-2box",
+      "res": 8,
+      "h3py": {
+        "count": 23,
+        "sha256": "ec636b02ad6102796b0160f6591cc09c9ebfeb02ba3fb230e732a60a5829d507"
+      },
+      "native": {
+        "count": 23,
+        "sha256": "ec636b02ad6102796b0160f6591cc09c9ebfeb02ba3fb230e732a60a5829d507"
+      },
+      "pocketken": {
+        "count": 23,
+        "sha256": "ec636b02ad6102796b0160f6591cc09c9ebfeb02ba3fb230e732a60a5829d507"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "multi-2box",
+      "res": 9,
+      "h3py": {
+        "count": 161,
+        "sha256": "e944509d9004b5954e894a2fcb3aa346a0eca812a554c3a5dcd1222a990f915a"
+      },
+      "native": {
+        "count": 161,
+        "sha256": "e944509d9004b5954e894a2fcb3aa346a0eca812a554c3a5dcd1222a990f915a"
+      },
+      "pocketken": {
+        "count": 161,
+        "sha256": "e944509d9004b5954e894a2fcb3aa346a0eca812a554c3a5dcd1222a990f915a"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "multi-2box",
+      "res": 10,
+      "h3py": {
+        "count": 1128,
+        "sha256": "fbf2a9e2b5ab8255d6fb9e85e191a43cb390d32094e3f0fcdeb02f0ffaf21af9"
+      },
+      "native": {
+        "count": 1128,
+        "sha256": "fbf2a9e2b5ab8255d6fb9e85e191a43cb390d32094e3f0fcdeb02f0ffaf21af9"
+      },
+      "pocketken": {
+        "count": 1128,
+        "sha256": "fbf2a9e2b5ab8255d6fb9e85e191a43cb390d32094e3f0fcdeb02f0ffaf21af9"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "multi-2box:multiapi",
+      "res": 8,
+      "h3py": {
+        "count": 23,
+        "sha256": "ec636b02ad6102796b0160f6591cc09c9ebfeb02ba3fb230e732a60a5829d507"
+      },
+      "native": {
+        "count": 23,
+        "sha256": "ec636b02ad6102796b0160f6591cc09c9ebfeb02ba3fb230e732a60a5829d507"
+      },
+      "pocketken": {
+        "count": 12,
+        "sha256": "3ca47bc405bfe98466f29ae71ee3096c5b4b556103521f20eb9faaf51db0725c"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": false,
+      "only_native": [
+        "8828308291fffff",
+        "8828308293fffff",
+        "8828308295fffff",
+        "8828308297fffff",
+        "8828308299fffff",
+        "882830829bfffff",
+        "882830829dfffff",
+        "8828308745fffff",
+        "8828308769fffff",
+        "882830876dfffff",
+        "88283095a5fffff"
+      ],
+      "only_pocketken": [],
+      "boundary_note": "diff cells=11; center-to-nearest-edge (m): min=81.7 median=507.1 mean=507.4 max=1178.0; 8/11 (73%) within one cell circumradius of an edge (boundary-hugging)"
+    },
+    {
+      "case_id": "multi-2box:multiapi",
+      "res": 9,
+      "h3py": {
+        "count": 161,
+        "sha256": "e944509d9004b5954e894a2fcb3aa346a0eca812a554c3a5dcd1222a990f915a"
+      },
+      "native": {
+        "count": 161,
+        "sha256": "e944509d9004b5954e894a2fcb3aa346a0eca812a554c3a5dcd1222a990f915a"
+      },
+      "pocketken": {
+        "count": 84,
+        "sha256": "b5207bb668ee5baa07611007679e9c2b86e5b4e06593cc69ac1c57432d4cfd49"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": false,
+      "only_native": [
+        "892830828a7ffff",
+        "89283082903ffff",
+        "89283082907ffff",
+        "8928308290bffff",
+        "8928308290fffff",
+        "89283082913ffff",
+        "89283082917ffff",
+        "8928308291bffff",
+        "89283082923ffff",
+        "89283082927ffff",
+        "8928308292bffff",
+        "8928308292fffff",
+        "89283082933ffff",
+        "89283082937ffff",
+        "8928308293bffff",
+        "89283082943ffff",
+        "89283082947ffff",
+        "8928308294fffff",
+        "89283082953ffff",
+        "89283082957ffff",
+        "89283082963ffff",
+        "89283082967ffff",
+        "8928308296bffff",
+        "8928308296fffff",
+        "89283082973ffff",
+        "89283082977ffff",
+        "8928308297bffff",
+        "89283082983ffff",
+        "89283082987ffff",
+        "8928308298bffff",
+        "8928308298fffff",
+        "89283082993ffff",
+        "89283082997ffff",
+        "8928308299bffff",
+        "892830829a3ffff",
+        "892830829a7ffff",
+        "892830829abffff",
+        "892830829afffff",
+        "892830829b3ffff",
+        "892830829b7ffff",
+        "892830829bbffff",
+        "892830829c3ffff",
+        "892830829c7ffff",
+        "892830829cbffff",
+        "892830829cfffff",
+        "892830829d3ffff",
+        "892830829d7ffff",
+        "892830829dbffff",
+        "89283082b37ffff",
+        "89283082ba7ffff",
+        "89283082bafffff",
+        "89283082bb7ffff",
+        "89283082d67ffff",
+        "89283082d6bffff",
+        "89283082d6fffff",
+        "89283087443ffff",
+        "8928308744bffff",
+        "8928308744fffff",
+        "89283087453ffff",
+        "8928308745bffff",
+        "892830874cbffff",
+        "892830874dbffff",
+        "89283087683ffff",
+        "89283087687ffff",
+        "8928308768bffff",
+        "89283087693ffff",
+        "89283087697ffff",
+        "8928308769bffff",
+        "892830876b3ffff",
+        "892830876c3ffff",
+        "892830876d3ffff",
+        "892830876d7ffff",
+        "892830876dbffff",
+        "89283095a43ffff",
+        "89283095a4bffff",
+        "89283095a4fffff",
+        "89283095a5bffff"
+      ],
+      "only_pocketken": [],
+      "boundary_note": "diff cells=77; center-to-nearest-edge (m): min=5.4 median=495.1 mean=506.1 max=1204.3; 15/77 (19%) within one cell circumradius of an edge (boundary-hugging)"
+    },
+    {
+      "case_id": "multi-2box:multiapi",
+      "res": 10,
+      "h3py": {
+        "count": 1128,
+        "sha256": "fbf2a9e2b5ab8255d6fb9e85e191a43cb390d32094e3f0fcdeb02f0ffaf21af9"
+      },
+      "native": {
+        "count": 1128,
+        "sha256": "fbf2a9e2b5ab8255d6fb9e85e191a43cb390d32094e3f0fcdeb02f0ffaf21af9"
+      },
+      "pocketken": {
+        "count": 564,
+        "sha256": "6bb54846701bfe1737d153e96d6220181a8ce7c9f6388bcb9ad3fe034eb8483c"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": false,
+      "only_native": [
+        "8a283082824ffff",
+        "8a283082826ffff",
+        "8a283082834ffff",
+        "8a283082836ffff",
+        "8a2830828a2ffff",
+        "8a2830828a47fff",
+        "8a2830828a4ffff",
+        "8a2830828a57fff",
+        "8a2830828a5ffff",
+        "8a2830828a67fff",
+        "8a2830828a6ffff",
+        "8a2830828a77fff",
+        "8a2830828aeffff",
+        "8a2830828b4ffff",
+        "8a2830828b5ffff",
+        "8a2830829007fff",
+        "8a283082900ffff",
+        "8a2830829017fff",
+        "8a283082901ffff",
+        "8a2830829027fff",
+        "8a283082902ffff",
+        "8a2830829037fff",
+        "8a2830829047fff",
+        "8a283082904ffff",
+        "8a2830829057fff",
+        "8a283082905ffff",
+        "8a2830829067fff",
+        "8a283082906ffff",
+        "8a2830829077fff",
+        "8a2830829087fff",
+        "8a283082908ffff",
+        "8a2830829097fff",
+        "8a283082909ffff",
+        "8a28308290a7fff",
+        "8a28308290affff",
+        "8a28308290b7fff",
+        "8a28308290c7fff",
+        "8a28308290cffff",
+        "8a28308290d7fff",
+        "8a28308290dffff",
+        "8a28308290e7fff",
+        "8a28308290effff",
+        "8a28308290f7fff",
+        "8a2830829107fff",
+        "8a283082910ffff",
+        "8a2830829117fff",
+        "8a283082911ffff",
+        "8a2830829127fff",
+        "8a283082912ffff",
+        "8a2830829137fff",
+        "8a2830829147fff",
+        "8a283082914ffff",
+        "8a2830829157fff",
+        "8a283082915ffff",
+        "8a2830829167fff",
+        "8a283082916ffff",
+        "8a2830829177fff",
+        "8a2830829187fff",
+        "8a283082918ffff",
+        "8a2830829197fff",
+        "8a283082919ffff",
+        "8a28308291a7fff",
+        "8a28308291affff",
+        "8a28308291b7fff",
+        "8a2830829207fff",
+        "8a283082920ffff",
+        "8a2830829217fff",
+        "8a283082921ffff",
+        "8a2830829227fff",
+        "8a283082922ffff",
+        "8a2830829237fff",
+        "8a2830829247fff",
+        "8a283082924ffff",
+        "8a2830829257fff",
+        "8a283082925ffff",
+        "8a2830829267fff",
+        "8a283082926ffff",
+        "8a2830829277fff",
+        "8a2830829287fff",
+        "8a283082928ffff",
+        "8a2830829297fff",
+        "8a283082929ffff",
+        "8a28308292a7fff",
+        "8a28308292affff",
+        "8a28308292b7fff",
+        "8a28308292c7fff",
+        "8a28308292cffff",
+        "8a28308292d7fff",
+        "8a28308292dffff",
+        "8a28308292e7fff",
+        "8a28308292effff",
+        "8a28308292f7fff",
+        "8a2830829307fff",
+        "8a283082930ffff",
+        "8a2830829317fff",
+        "8a283082931ffff",
+        "8a2830829327fff",
+        "8a283082932ffff",
+        "8a2830829337fff",
+        "8a2830829347fff",
+        "8a283082934ffff",
+        "8a2830829357fff",
+        "8a283082935ffff",
+        "8a2830829367fff",
+        "8a283082936ffff",
+        "8a2830829377fff",
+        "8a2830829387fff",
+        "8a283082938ffff",
+        "8a2830829397fff",
+        "8a283082939ffff",
+        "8a28308293a7fff",
+        "8a28308293affff",
+        "8a28308293b7fff",
+        "8a2830829407fff",
+        "8a283082940ffff",
+        "8a2830829417fff",
+        "8a283082941ffff",
+        "8a2830829427fff",
+        "8a283082942ffff",
+        "8a2830829437fff",
+        "8a2830829447fff",
+        "8a283082944ffff",
+        "8a2830829457fff",
+        "8a283082945ffff",
+        "8a2830829467fff",
+        "8a283082946ffff",
+        "8a2830829477fff",
+        "8a283082948ffff",
+        "8a28308294a7fff",
+        "8a28308294affff",
+        "8a28308294c7fff",
+        "8a28308294cffff",
+        "8a28308294d7fff",
+        "8a28308294dffff",
+        "8a28308294e7fff",
+        "8a28308294effff",
+        "8a28308294f7fff",
+        "8a2830829507fff",
+        "8a283082950ffff",
+        "8a2830829517fff",
+        "8a283082951ffff",
+        "8a2830829527fff",
+        "8a283082952ffff",
+        "8a2830829537fff",
+        "8a2830829547fff",
+        "8a283082954ffff",
+        "8a2830829557fff",
+        "8a283082955ffff",
+        "8a2830829567fff",
+        "8a283082956ffff",
+        "8a2830829577fff",
+        "8a283082958ffff",
+        "8a28308295affff",
+        "8a2830829607fff",
+        "8a283082960ffff",
+        "8a2830829617fff",
+        "8a283082961ffff",
+        "8a2830829627fff",
+        "8a283082962ffff",
+        "8a2830829637fff",
+        "8a2830829647fff",
+        "8a283082964ffff",
+        "8a2830829657fff",
+        "8a283082965ffff",
+        "8a2830829667fff",
+        "8a283082966ffff",
+        "8a2830829677fff",
+        "8a2830829687fff",
+        "8a283082968ffff",
+        "8a2830829697fff",
+        "8a283082969ffff",
+        "8a28308296a7fff",
+        "8a28308296affff",
+        "8a28308296b7fff",
+        "8a28308296c7fff",
+        "8a28308296cffff",
+        "8a28308296d7fff",
+        "8a28308296dffff",
+        "8a28308296e7fff",
+        "8a28308296effff",
+        "8a28308296f7fff",
+        "8a2830829707fff",
+        "8a283082970ffff",
+        "8a2830829717fff",
+        "8a283082971ffff",
+        "8a2830829727fff",
+        "8a283082972ffff",
+        "8a2830829737fff",
+        "8a2830829747fff",
+        "8a283082974ffff",
+        "8a2830829757fff",
+        "8a283082975ffff",
+        "8a2830829767fff",
+        "8a283082976ffff",
+        "8a2830829777fff",
+        "8a2830829787fff",
+        "8a283082978ffff",
+        "8a2830829797fff",
+        "8a283082979ffff",
+        "8a28308297a7fff",
+        "8a28308297affff",
+        "8a28308297b7fff",
+        "8a2830829807fff",
+        "8a283082980ffff",
+        "8a2830829817fff",
+        "8a283082981ffff",
+        "8a2830829827fff",
+        "8a283082982ffff",
+        "8a2830829837fff",
+        "8a2830829847fff",
+        "8a283082984ffff",
+        "8a2830829857fff",
+        "8a283082985ffff",
+        "8a2830829867fff",
+        "8a283082986ffff",
+        "8a2830829877fff",
+        "8a2830829887fff",
+        "8a283082988ffff",
+        "8a2830829897fff",
+        "8a283082989ffff",
+        "8a28308298a7fff",
+        "8a28308298affff",
+        "8a28308298b7fff",
+        "8a28308298c7fff",
+        "8a28308298cffff",
+        "8a28308298d7fff",
+        "8a28308298dffff",
+        "8a28308298e7fff",
+        "8a28308298effff",
+        "8a28308298f7fff",
+        "8a2830829907fff",
+        "8a283082990ffff",
+        "8a2830829917fff",
+        "8a283082991ffff",
+        "8a2830829927fff",
+        "8a283082992ffff",
+        "8a2830829937fff",
+        "8a2830829947fff",
+        "8a283082994ffff",
+        "8a2830829957fff",
+        "8a283082995ffff",
+        "8a2830829967fff",
+        "8a283082996ffff",
+        "8a2830829977fff",
+        "8a2830829987fff",
+        "8a283082998ffff",
+        "8a2830829997fff",
+        "8a283082999ffff",
+        "8a28308299a7fff",
+        "8a28308299affff",
+        "8a28308299b7fff",
+        "8a2830829a07fff",
+        "8a2830829a0ffff",
+        "8a2830829a17fff",
+        "8a2830829a1ffff",
+        "8a2830829a27fff",
+        "8a2830829a2ffff",
+        "8a2830829a37fff",
+        "8a2830829a47fff",
+        "8a2830829a4ffff",
+        "8a2830829a57fff",
+        "8a2830829a5ffff",
+        "8a2830829a67fff",
+        "8a2830829a6ffff",
+        "8a2830829a77fff",
+        "8a2830829a87fff",
+        "8a2830829a8ffff",
+        "8a2830829a97fff",
+        "8a2830829a9ffff",
+        "8a2830829aa7fff",
+        "8a2830829aaffff",
+        "8a2830829ab7fff",
+        "8a2830829ac7fff",
+        "8a2830829acffff",
+        "8a2830829ad7fff",
+        "8a2830829adffff",
+        "8a2830829ae7fff",
+        "8a2830829aeffff",
+        "8a2830829af7fff",
+        "8a2830829b07fff",
+        "8a2830829b0ffff",
+        "8a2830829b17fff",
+        "8a2830829b1ffff",
+        "8a2830829b27fff",
+        "8a2830829b2ffff",
+        "8a2830829b37fff",
+        "8a2830829b47fff",
+        "8a2830829b4ffff",
+        "8a2830829b57fff",
+        "8a2830829b5ffff",
+        "8a2830829b67fff",
+        "8a2830829b6ffff",
+        "8a2830829b77fff",
+        "8a2830829b87fff",
+        "8a2830829b8ffff",
+        "8a2830829b97fff",
+        "8a2830829b9ffff",
+        "8a2830829ba7fff",
+        "8a2830829baffff",
+        "8a2830829bb7fff",
+        "8a2830829c07fff",
+        "8a2830829c0ffff",
+        "8a2830829c17fff",
+        "8a2830829c1ffff",
+        "8a2830829c27fff",
+        "8a2830829c2ffff",
+        "8a2830829c37fff",
+        "8a2830829c47fff",
+        "8a2830829c4ffff",
+        "8a2830829c57fff",
+        "8a2830829c5ffff",
+        "8a2830829c67fff",
+        "8a2830829c6ffff",
+        "8a2830829c77fff",
+        "8a2830829c87fff",
+        "8a2830829c8ffff",
+        "8a2830829c97fff",
+        "8a2830829c9ffff",
+        "8a2830829ca7fff",
+        "8a2830829caffff",
+        "8a2830829cb7fff",
+        "8a2830829cc7fff",
+        "8a2830829ccffff",
+        "8a2830829cd7fff",
+        "8a2830829cdffff",
+        "8a2830829ce7fff",
+        "8a2830829ceffff",
+        "8a2830829cf7fff",
+        "8a2830829d07fff",
+        "8a2830829d0ffff",
+        "8a2830829d17fff",
+        "8a2830829d1ffff",
+        "8a2830829d27fff",
+        "8a2830829d2ffff",
+        "8a2830829d37fff",
+        "8a2830829d47fff",
+        "8a2830829d4ffff",
+        "8a2830829d57fff",
+        "8a2830829d5ffff",
+        "8a2830829d67fff",
+        "8a2830829d6ffff",
+        "8a2830829d77fff",
+        "8a2830829d87fff",
+        "8a2830829d8ffff",
+        "8a2830829d97fff",
+        "8a2830829d9ffff",
+        "8a2830829da7fff",
+        "8a2830829daffff",
+        "8a2830829db7fff",
+        "8a283082b347fff",
+        "8a283082b367fff",
+        "8a283082b36ffff",
+        "8a283082ba0ffff",
+        "8a283082ba27fff",
+        "8a283082ba2ffff",
+        "8a283082ba47fff",
+        "8a283082ba4ffff",
+        "8a283082ba57fff",
+        "8a283082ba5ffff",
+        "8a283082ba67fff",
+        "8a283082ba6ffff",
+        "8a283082ba77fff",
+        "8a283082bac7fff",
+        "8a283082bacffff",
+        "8a283082bae7fff",
+        "8a283082baeffff",
+        "8a283082bb0ffff",
+        "8a283082bb27fff",
+        "8a283082bb2ffff",
+        "8a283082bb47fff",
+        "8a283082bb4ffff",
+        "8a283082bb57fff",
+        "8a283082bb5ffff",
+        "8a283082bb67fff",
+        "8a283082bb6ffff",
+        "8a283082bb77fff",
+        "8a283082d2cffff",
+        "8a283082d2dffff",
+        "8a283082d647fff",
+        "8a283082d64ffff",
+        "8a283082d657fff",
+        "8a283082d65ffff",
+        "8a283082d687fff",
+        "8a283082d68ffff",
+        "8a283082d697fff",
+        "8a283082d69ffff",
+        "8a283082d6affff",
+        "8a283082d6c7fff",
+        "8a283082d6cffff",
+        "8a283082d6d7fff",
+        "8a283082d6dffff",
+        "8a283082d6e7fff",
+        "8a283082d6effff",
+        "8a283082d6f7fff",
+        "8a2830874407fff",
+        "8a283087440ffff",
+        "8a2830874417fff",
+        "8a283087441ffff",
+        "8a2830874427fff",
+        "8a283087442ffff",
+        "8a2830874437fff",
+        "8a2830874487fff",
+        "8a283087448ffff",
+        "8a2830874497fff",
+        "8a283087449ffff",
+        "8a28308744a7fff",
+        "8a28308744affff",
+        "8a28308744b7fff",
+        "8a28308744c7fff",
+        "8a28308744cffff",
+        "8a28308744d7fff",
+        "8a28308744dffff",
+        "8a28308744e7fff",
+        "8a28308744effff",
+        "8a28308744f7fff",
+        "8a2830874507fff",
+        "8a283087450ffff",
+        "8a2830874517fff",
+        "8a283087451ffff",
+        "8a2830874527fff",
+        "8a283087452ffff",
+        "8a2830874537fff",
+        "8a2830874587fff",
+        "8a283087458ffff",
+        "8a2830874597fff",
+        "8a283087459ffff",
+        "8a28308745a7fff",
+        "8a28308745affff",
+        "8a28308745b7fff",
+        "8a2830874c17fff",
+        "8a2830874c87fff",
+        "8a2830874c8ffff",
+        "8a2830874c97fff",
+        "8a2830874c9ffff",
+        "8a2830874ca7fff",
+        "8a2830874caffff",
+        "8a2830874cb7fff",
+        "8a2830874cd7fff",
+        "8a2830874d17fff",
+        "8a2830874d37fff",
+        "8a2830874d87fff",
+        "8a2830874d8ffff",
+        "8a2830874d97fff",
+        "8a2830874d9ffff",
+        "8a2830874da7fff",
+        "8a2830874daffff",
+        "8a2830874db7fff",
+        "8a2830876807fff",
+        "8a283087680ffff",
+        "8a2830876817fff",
+        "8a283087681ffff",
+        "8a2830876827fff",
+        "8a283087682ffff",
+        "8a2830876837fff",
+        "8a2830876847fff",
+        "8a283087684ffff",
+        "8a2830876857fff",
+        "8a283087685ffff",
+        "8a2830876867fff",
+        "8a283087686ffff",
+        "8a2830876877fff",
+        "8a2830876887fff",
+        "8a283087688ffff",
+        "8a2830876897fff",
+        "8a283087689ffff",
+        "8a28308768a7fff",
+        "8a28308768affff",
+        "8a28308768b7fff",
+        "8a28308768e7fff",
+        "8a28308768effff",
+        "8a28308768f7fff",
+        "8a2830876907fff",
+        "8a283087690ffff",
+        "8a2830876917fff",
+        "8a283087691ffff",
+        "8a2830876927fff",
+        "8a283087692ffff",
+        "8a2830876937fff",
+        "8a2830876947fff",
+        "8a283087694ffff",
+        "8a2830876957fff",
+        "8a283087695ffff",
+        "8a2830876967fff",
+        "8a283087696ffff",
+        "8a2830876977fff",
+        "8a2830876987fff",
+        "8a283087698ffff",
+        "8a2830876997fff",
+        "8a283087699ffff",
+        "8a28308769a7fff",
+        "8a28308769affff",
+        "8a28308769b7fff",
+        "8a2830876b07fff",
+        "8a2830876b17fff",
+        "8a2830876b27fff",
+        "8a2830876b2ffff",
+        "8a2830876b37fff",
+        "8a2830876b67fff",
+        "8a2830876c07fff",
+        "8a2830876c17fff",
+        "8a2830876c27fff",
+        "8a2830876c2ffff",
+        "8a2830876c37fff",
+        "8a2830876c67fff",
+        "8a2830876c77fff",
+        "8a2830876ca7fff",
+        "8a2830876d07fff",
+        "8a2830876d0ffff",
+        "8a2830876d17fff",
+        "8a2830876d1ffff",
+        "8a2830876d27fff",
+        "8a2830876d2ffff",
+        "8a2830876d37fff",
+        "8a2830876d47fff",
+        "8a2830876d4ffff",
+        "8a2830876d57fff",
+        "8a2830876d5ffff",
+        "8a2830876d67fff",
+        "8a2830876d6ffff",
+        "8a2830876d77fff",
+        "8a2830876d87fff",
+        "8a2830876d8ffff",
+        "8a2830876d97fff",
+        "8a2830876d9ffff",
+        "8a2830876da7fff",
+        "8a2830876daffff",
+        "8a2830876db7fff",
+        "8a283095a407fff",
+        "8a283095a40ffff",
+        "8a283095a417fff",
+        "8a283095a41ffff",
+        "8a283095a427fff",
+        "8a283095a42ffff",
+        "8a283095a437fff",
+        "8a283095a457fff",
+        "8a283095a45ffff",
+        "8a283095a477fff",
+        "8a283095a487fff",
+        "8a283095a48ffff",
+        "8a283095a497fff",
+        "8a283095a49ffff",
+        "8a283095a4a7fff",
+        "8a283095a4affff",
+        "8a283095a4b7fff",
+        "8a283095a4c7fff",
+        "8a283095a4cffff",
+        "8a283095a4d7fff",
+        "8a283095a4dffff",
+        "8a283095a4e7fff",
+        "8a283095a4effff",
+        "8a283095a4f7fff",
+        "8a283095a51ffff",
+        "8a283095a557fff",
+        "8a283095a55ffff",
+        "8a283095a587fff",
+        "8a283095a58ffff",
+        "8a283095a597fff",
+        "8a283095a59ffff",
+        "8a283095a5affff",
+        "8a283095a5b7fff",
+        "8a283095a697fff",
+        "8a283095a6b7fff",
+        "8a283095a797fff",
+        "8a283095a7b7fff"
+      ],
+      "only_pocketken": [],
+      "boundary_note": "diff cells=564; center-to-nearest-edge (m): min=0.5 median=431.0 mean=484.3 max=1311.3; 61/564 (11%) within one cell circumradius of an edge (boundary-hugging)"
+    },
+    {
+      "case_id": "sf-triangle",
+      "res": 7,
+      "h3py": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "native": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "pocketken": {
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "sf-triangle",
+      "res": 8,
+      "h3py": {
+        "count": 7,
+        "sha256": "8755642beded15d0a7f1285b0e13d9aae6ed1f8d3ced89604d161b94bce1e5ff"
+      },
+      "native": {
+        "count": 7,
+        "sha256": "8755642beded15d0a7f1285b0e13d9aae6ed1f8d3ced89604d161b94bce1e5ff"
+      },
+      "pocketken": {
+        "count": 1,
+        "sha256": "b75f717b1816bb1f3ff69ce1d277ac20e3bd337b2b5f7c55a71509f323ae5d9d"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": false,
+      "only_native": [
+        "882830805bfffff",
+        "88283080c9fffff",
+        "8828308207fffff",
+        "88283082a5fffff",
+        "88283082a7fffff",
+        "88283082adfffff"
+      ],
+      "only_pocketken": [],
+      "boundary_note": "diff cells=6; center-to-nearest-edge (m): min=71.1 median=221.7 mean=178.3 max=316.3; 6/6 (100%) within one cell circumradius of an edge (boundary-hugging)"
+    },
+    {
+      "case_id": "sf-triangle",
+      "res": 9,
+      "h3py": {
+        "count": 55,
+        "sha256": "7ce62d44006738763a6d8742f11547f6eafe0f39d49a12802fda70510f396d8d"
+      },
+      "native": {
+        "count": 55,
+        "sha256": "7ce62d44006738763a6d8742f11547f6eafe0f39d49a12802fda70510f396d8d"
+      },
+      "pocketken": {
+        "count": 51,
+        "sha256": "faaaf13e47cb345d23f56a7c17d12e1d20d0989e391617cbecf1584eb4f87e6f"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": false,
+      "only_native": [
+        "89283080cafffff",
+        "89283082057ffff",
+        "892830820cfffff",
+        "892830826a7ffff"
+      ],
+      "only_pocketken": [],
+      "boundary_note": "diff cells=4; center-to-nearest-edge (m): min=2.9 median=38.8 mean=30.4 max=68.7; 4/4 (100%) within one cell circumradius of an edge (boundary-hugging)"
+    },
+    {
+      "case_id": "sf-triangle",
+      "res": 10,
+      "h3py": {
+        "count": 377,
+        "sha256": "612e6e3027883ebbaa586329b03372663c3c69a49675dd5c0564121a3352c0ad"
+      },
+      "native": {
+        "count": 377,
+        "sha256": "612e6e3027883ebbaa586329b03372663c3c69a49675dd5c0564121a3352c0ad"
+      },
+      "pocketken": {
+        "count": 375,
+        "sha256": "215a99042650703441b7a0ff57634d17c08dfea741affcea448588c3f03c7784"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": false,
+      "only_native": [
+        "8a2830820daffff",
+        "8a2830826a47fff"
+      ],
+      "only_pocketken": [],
+      "boundary_note": "diff cells=2; center-to-nearest-edge (m): min=11.3 median=25.7 mean=18.5 max=25.7; 2/2 (100%) within one cell circumradius of an edge (boundary-hugging)"
+    },
+    {
+      "case_id": "sf-triangle",
+      "res": 11,
+      "h3py": {
+        "count": 2636,
+        "sha256": "6d233be5e9d18dc4b0232dbc18ad6045a5811670425d36a006610f08274cbc52"
+      },
+      "native": {
+        "count": 2636,
+        "sha256": "6d233be5e9d18dc4b0232dbc18ad6045a5811670425d36a006610f08274cbc52"
+      },
+      "pocketken": {
+        "count": 2632,
+        "sha256": "fea2fe173ea7ff86c7a04788f36ed55925b7f11e8abddc1482b1ca67e4c74d7d"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": false,
+      "only_native": [
+        "8b283080c369fff",
+        "8b2830826a40fff",
+        "8b2830826a44fff",
+        "8b2830826b5bfff"
+      ],
+      "only_pocketken": [],
+      "boundary_note": "diff cells=4; center-to-nearest-edge (m): min=1.7 median=7.7 mean=6.6 max=11.3; 4/4 (100%) within one cell circumradius of an edge (boundary-hugging)"
+    },
+    {
+      "case_id": "sweep-box",
+      "res": 4,
+      "h3py": {
+        "count": 1,
+        "sha256": "5530fb624a906039788729041ec3f508d65336c94644f5ad39aad5f4dbb21f61"
+      },
+      "native": {
+        "count": 1,
+        "sha256": "5530fb624a906039788729041ec3f508d65336c94644f5ad39aad5f4dbb21f61"
+      },
+      "pocketken": {
+        "count": 1,
+        "sha256": "5530fb624a906039788729041ec3f508d65336c94644f5ad39aad5f4dbb21f61"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "sweep-box",
+      "res": 5,
+      "h3py": {
+        "count": 9,
+        "sha256": "2290a8a7e3de8416ba2fa94cd067f4f7ee79f0a918f5fb57bdee55a92edebb16"
+      },
+      "native": {
+        "count": 9,
+        "sha256": "2290a8a7e3de8416ba2fa94cd067f4f7ee79f0a918f5fb57bdee55a92edebb16"
+      },
+      "pocketken": {
+        "count": 9,
+        "sha256": "2290a8a7e3de8416ba2fa94cd067f4f7ee79f0a918f5fb57bdee55a92edebb16"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "sweep-box",
+      "res": 6,
+      "h3py": {
+        "count": 65,
+        "sha256": "1f1a472e0039a07fad65922b4f43c9658d2c886301292f845369016cd3d9e1bd"
+      },
+      "native": {
+        "count": 65,
+        "sha256": "1f1a472e0039a07fad65922b4f43c9658d2c886301292f845369016cd3d9e1bd"
+      },
+      "pocketken": {
+        "count": 65,
+        "sha256": "1f1a472e0039a07fad65922b4f43c9658d2c886301292f845369016cd3d9e1bd"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "sweep-box",
+      "res": 7,
+      "h3py": {
+        "count": 455,
+        "sha256": "ed541934b939a49c99fa5e8a6a7931642b5b48bfdb79ea2302c7061b89c749bd"
+      },
+      "native": {
+        "count": 455,
+        "sha256": "ed541934b939a49c99fa5e8a6a7931642b5b48bfdb79ea2302c7061b89c749bd"
+      },
+      "pocketken": {
+        "count": 455,
+        "sha256": "ed541934b939a49c99fa5e8a6a7931642b5b48bfdb79ea2302c7061b89c749bd"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "sweep-box",
+      "res": 8,
+      "h3py": {
+        "count": 3189,
+        "sha256": "a05cc226bbd60b555ba474c0e6c0a785ca8c98cd8946745cd8feeb8642c44195"
+      },
+      "native": {
+        "count": 3189,
+        "sha256": "a05cc226bbd60b555ba474c0e6c0a785ca8c98cd8946745cd8feeb8642c44195"
+      },
+      "pocketken": {
+        "count": 3189,
+        "sha256": "a05cc226bbd60b555ba474c0e6c0a785ca8c98cd8946745cd8feeb8642c44195"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "sweep-box",
+      "res": 9,
+      "h3py": {
+        "count": 22334,
+        "sha256": "ba3e7a36b7b64b01860da78a68f2aaa120d573a5e6eda4bffae62dccd79c05a5"
+      },
+      "native": {
+        "count": 22334,
+        "sha256": "ba3e7a36b7b64b01860da78a68f2aaa120d573a5e6eda4bffae62dccd79c05a5"
+      },
+      "pocketken": {
+        "count": 22334,
+        "sha256": "ba3e7a36b7b64b01860da78a68f2aaa120d573a5e6eda4bffae62dccd79c05a5"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "sweep-box",
+      "res": 10,
+      "h3py": {
+        "count": 156334,
+        "sha256": "affdf6bc568c141f4f89290d19f54192c2725b8c7a8395c99227fc2b03606738"
+      }
+    },
+    {
+      "case_id": "transmeridian",
+      "res": 5,
+      "h3py": {
+        "count": 9,
+        "sha256": "1d29fa7067138bc52cb48b53a801842c314c3cf2c58337a68c81bedf1a30c6a8"
+      },
+      "native": {
+        "count": 9,
+        "sha256": "1d29fa7067138bc52cb48b53a801842c314c3cf2c58337a68c81bedf1a30c6a8"
+      },
+      "pocketken": {
+        "count": 9,
+        "sha256": "1d29fa7067138bc52cb48b53a801842c314c3cf2c58337a68c81bedf1a30c6a8"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "transmeridian",
+      "res": 6,
+      "h3py": {
+        "count": 65,
+        "sha256": "1e8ca0e1d0ce657510deb531017312fbfb0d37030e9bdcbf98c669dd6b9da030"
+      },
+      "native": {
+        "count": 65,
+        "sha256": "1e8ca0e1d0ce657510deb531017312fbfb0d37030e9bdcbf98c669dd6b9da030"
+      },
+      "pocketken": {
+        "count": 65,
+        "sha256": "1e8ca0e1d0ce657510deb531017312fbfb0d37030e9bdcbf98c669dd6b9da030"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    },
+    {
+      "case_id": "transmeridian",
+      "res": 7,
+      "h3py": {
+        "count": 486,
+        "sha256": "af59572c4f9077441cafb713343f4426ca5d708c7d53cc18b765f55ec5e901fb"
+      },
+      "native": {
+        "count": 486,
+        "sha256": "af59572c4f9077441cafb713343f4426ca5d708c7d53cc18b765f55ec5e901fb"
+      },
+      "pocketken": {
+        "count": 486,
+        "sha256": "af59572c4f9077441cafb713343f4426ca5d708c7d53cc18b765f55ec5e901fb"
+      },
+      "native_matches_oracle": true,
+      "pocketken_matches_oracle": true
+    }
+  ],
+  "summary": {
+    "native_vs_oracle": "27/27 identical",
+    "pocketken_vs_oracle": "20/27 identical; every mismatch is a strict subset (cells missed, never added)"
+  }
+}
