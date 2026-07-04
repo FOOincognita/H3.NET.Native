@@ -36,6 +36,34 @@ exception-mapped surface) and stays well ahead of the managed port, which pays
 
 ![Indexing and traversal run within 1-9% of the raw libh3 C floor; pocketken.H3 pays 25-67% more](images/overhead-vs-raw.svg)
 
+## Batched hierarchy operations: `cellToParent` and `cellToChildren`
+
+The hierarchy calls are the smallest unit of work in the library, so a fair comparison
+batches them. The harness takes 100 res-8 cells from a sorted San Francisco k=6 grid
+disk; they reduce to 19 unique res-7 parents and expand back out to 133 res-8 children.
+
+| Operation | Implementation | Mean | Ratio | Allocated |
+| --- | --- | ---: | ---: | ---: |
+| `cellToParent` (100 cells) | **H3.NET.Native** | 275.5 ns | 1.00 | **0 B** |
+| `cellToParent` (100 cells) | pocketken.H3 | 301.5 ns | 1.09 | 2,400 B |
+| `cellToChildren` (19 parents) | **H3.NET.Native** `CellToChildren` | 724.6 ns | 1.00 | 3,040 B |
+| `cellToChildren` (19 parents) | **H3.NET.Native** `CellToChildrenInto` | 548.5 ns | **0.76** | **0 B** |
+| `cellToChildren` (19 parents) | pocketken.H3 | 1,030.4 ns | 1.42 | 5,016 B |
+
+On `cellToParent` the binding leads on both axes: 275.5 ns against 301.5 ns for the 100
+calls (about 2.76 ns per call, 1.09x faster), and zero managed allocation against
+pocketken.H3's 2,400 B (24 B per call). The binding stays under 3 ns per call even though
+every call goes through the `LibraryImport` source-generated marshalling stub and does
+not yet apply `SuppressGCTransition` (deferred by design), so there is still headroom
+below this number.
+
+On `cellToChildren` the binding leads by more. Expanding the 19 parents to their res-8
+children takes 724.6 ns returning a fresh `H3Index[]` (`CellToChildren`, 3,040 B), or
+548.5 ns writing into a caller-supplied span (`CellToChildrenInto`, zero allocation),
+against 1,030.4 ns and 5,016 B for pocketken.H3's `GetChildrenForResolution`. That is
+1.4x faster allocating a new array, and 1.9x faster with zero allocation through the
+span overload.
+
 ## Filling polygons: `polygonToCells`
 
 This is the one operation where a single headline number misleads. On a **small**
@@ -105,6 +133,37 @@ reachability).
 As far as we can measure, beating pocketken.H3 on small fills and returning the reference
 cell set are mutually exclusive. This binding keeps the reference cell set: neither
 prototype ships in the package, and `ToCells` remains a thin call into libh3.
+
+### `ToCellsExperimental` for large fills
+
+H3 v4.5.0 also ships an experimental `polygonToCellsExperimental` that honors every
+containment mode; in center mode it targets the same containment predicate as stable
+`polygonToCells` by a faster interior-fill algorithm. The binding exposes it as
+`H3Polygon.ToCellsExperimental(polygon, resolution, ContainmentMode.Center)`, gated
+behind the `[Experimental]` attribute (diagnostic `H3NET0001`): upstream reserves the
+right to change its behavior in any future minor H3 version, so it is an explicit
+opt-in, never the default path.
+
+On the same fixed ~0.5 degree sweep box used above, the two produce identical cell sets
+at every resolution tested (4 through 8), a match the benchmark asserts in its
+`GlobalSetup`. Where they differ is cost, and the sign of the difference flips with fill
+size:
+
+| Resolution | Output cells | Stable `ToCells` | `ToCellsExperimental` | Faster |
+| ---: | ---: | ---: | ---: | :--- |
+| 4 | 1 | 8.8 µs | 48.2 µs | stable 5.5x |
+| 5 | 9 | 18.9 µs | 80.1 µs | stable 4.2x |
+| 6 | 65 | 42.4 µs | 97.6 µs | stable 2.3x |
+| 7 | 455 | 194.9 µs | 158.9 µs | **experimental 1.2x** |
+| 8 | 3,189 | 917.1 µs | 330.9 µs | **experimental 2.8x** |
+
+The experimental fill sheds the perimeter-tracing overhead that dominates small stable
+fills, so it trails on tiny fills (up to 5.5x slower at res 4) and only pulls ahead once
+the output passes a few hundred cells, crossing over between res 6 and res 7 and reaching
+about 2.8x faster at res 8. Reach for `ToCellsExperimental` deliberately on large fills,
+where that edge is real, and keep stable `ToCells` for everything else. Stable `ToCells`
+remains the default and is not rerouted to the experimental path: the choice is the
+caller's, not automatic dispatch.
 
 ## Allocation
 
