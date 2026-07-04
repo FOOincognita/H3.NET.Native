@@ -36,6 +36,38 @@ exception-mapped surface) and stays well ahead of the managed port, which pays
 
 ![Indexing and traversal run within 1-9% of the raw libh3 C floor; pocketken.H3 pays 25-67% more](images/overhead-vs-raw.svg)
 
+## Batched hierarchy operations: `cellToParent` and `cellToChildren`
+
+The hierarchy calls are the smallest unit of work in the library, so a fair comparison
+batches them. The harness takes 100 res-8 cells from a sorted San Francisco k=6 grid
+disk; they reduce to 19 unique res-7 parents and expand back out to 133 res-8 children.
+
+| Operation | Implementation | Mean | Ratio | Allocated |
+| --- | --- | ---: | ---: | ---: |
+| `cellToParent` (100 cells) | **H3.NET.Native** | 296.6 ns | 1.00 | **0 B** |
+| `cellToParent` (100 cells) | pocketken.H3 | 296.9 ns | 1.00 | 2,400 B |
+| `cellToChildren` (19 parents) | **H3.NET.Native** `CellToChildren` | 724 ns | 1.00 | 3,040 B |
+| `cellToChildren` (19 parents) | **H3.NET.Native** `CellToChildrenInto` | 508 ns | **0.70** | **0 B** |
+| `cellToChildren` (19 parents) | pocketken.H3 | 1,008 ns | 1.39 | 5,016 B |
+
+On `cellToParent` the two libraries are a dead heat on wall clock (296.6 ns versus
+296.9 ns for the 100 calls, about 2.97 ns per call), but the binding does it with zero
+managed allocation while pocketken.H3 allocates 2,400 B (24 B per call). The binding
+reaches roughly 3 ns per call even though every call goes through the `LibraryImport`
+source-generated marshalling stub and does not yet apply `SuppressGCTransition`
+(deferred by design), so there is still headroom below this number.
+
+On `cellToChildren` the binding leads on both axes. Expanding the 19 parents to their
+res-8 children takes 724 ns returning a fresh `H3Index[]` (`CellToChildren`, 3,040 B),
+or 508 ns writing into a caller-supplied span (`CellToChildrenInto`, zero allocation),
+against 1,008 ns and 5,016 B for pocketken.H3's `GetChildrenForResolution`. That is
+1.4x faster allocating a new array, and 2.0x faster with zero allocation through the
+span overload.
+
+> Note: these hierarchy figures come from a BenchmarkDotNet ShortRun on the same Apple
+> M3 Pro and .NET 10 as the rest of this page. As everywhere else here, read the ratios
+> rather than the absolute nanoseconds as the signal.
+
 ## Filling polygons: `polygonToCells`
 
 This is the one operation where a single headline number misleads. On a **small**
@@ -105,6 +137,38 @@ reachability).
 As far as we can measure, beating pocketken.H3 on small fills and returning the reference
 cell set are mutually exclusive. This binding keeps the reference cell set: neither
 prototype ships in the package, and `ToCells` remains a thin call into libh3.
+
+### `ToCellsExperimental` for large fills
+
+H3 v4.5.0 also ships an experimental `polygonToCellsExperimental` that honors every
+containment mode; in center mode it targets the same containment predicate as stable
+`polygonToCells` by a faster interior-fill algorithm. The binding exposes it as
+`H3Polygon.ToCellsExperimental(polygon, resolution, ContainmentMode.Center)`, gated
+behind the `[Experimental]` attribute (diagnostic `H3NET0001`): upstream reserves the
+right to change its behavior in any future minor H3 version, so it is an explicit
+opt-in, never the default path.
+
+On the same fixed ~0.5 degree sweep box used above, the two produce identical cell sets
+at every resolution tested (4 through 8), a match the benchmark asserts in its
+`GlobalSetup`. Where they differ is cost, and the sign of the difference flips with fill
+size:
+
+| Resolution | Output cells | Stable `ToCells` | `ToCellsExperimental` | Faster |
+| ---: | ---: | ---: | ---: | :--- |
+| 4 | 1 | 8.7 µs | 47.7 µs | stable 5.5x |
+| 8 | 3,189 | 890.1 µs | 326.0 µs | **experimental 2.7x** |
+
+The experimental fill sheds the perimeter-tracing overhead that dominates small stable
+fills, so it pulls ahead only once the output is large; below roughly a thousand cells
+its own fixed cost leaves it several times slower. Reach for `ToCellsExperimental`
+deliberately on large fills (thousands of cells and up), where its ~2.7x edge is real,
+and keep stable `ToCells` for everything else. Stable `ToCells` remains the default and
+is not rerouted to the experimental path: the choice is the caller's, not automatic
+dispatch.
+
+> Note: both columns come from the same BenchmarkDotNet ShortRun, so the ratio is
+> measured on one run; the stable figures here differ slightly from the `DefaultJob`
+> numbers in the sweep table above for that reason, not because the fill changed.
 
 ## Allocation
 
