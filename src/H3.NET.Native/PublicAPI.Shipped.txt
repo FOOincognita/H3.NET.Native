@@ -142,6 +142,8 @@ static H3.NET.Native.H3Polygon.ToCells(H3.NET.Native.GeoPolygon! polygon, int re
 static H3.NET.Native.H3Polygon.ToCellsExperimental(H3.NET.Native.GeoPolygon! polygon, int resolution, H3.NET.Native.ContainmentMode mode) -> H3.NET.Native.H3Index[]!
 static H3.NET.Native.H3Vertex.IsValid(ulong value) -> bool
 static H3.NET.Native.H3Vertex.Null.get -> H3.NET.Native.H3Vertex
+static H3.NET.Native.LatLng.DegsToRads(double degrees) -> double
 static H3.NET.Native.LatLng.GreatCircleDistanceKm(H3.NET.Native.LatLng a, H3.NET.Native.LatLng b) -> double
 static H3.NET.Native.LatLng.GreatCircleDistanceM(H3.NET.Native.LatLng a, H3.NET.Native.LatLng b) -> double
 static H3.NET.Native.LatLng.GreatCircleDistanceRads(H3.NET.Native.LatLng a, H3.NET.Native.LatLng b) -> double
+static H3.NET.Native.LatLng.RadsToDegs(double radians) -> double

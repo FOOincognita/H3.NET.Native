@@ -1,3 +1,0 @@
-#nullable enable
-static H3.NET.Native.LatLng.DegsToRads(double degrees) -> double
-static H3.NET.Native.LatLng.RadsToDegs(double radians) -> double
