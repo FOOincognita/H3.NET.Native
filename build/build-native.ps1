@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
-# build-native.ps1 — PowerShell port of build-native.sh for Windows-based
-# contributors (best-effort; production ships only linux/macOS RIDs).
+# build-native.ps1 (PowerShell port of build-native.sh).
 #
 # Compiles libh3 from the pinned external/h3 submodule (v4.5.0) and stages the
 # unversioned shared library into runtimes/<rid>/native/.
@@ -9,17 +8,19 @@
 # Usage:
 #   ./build-native.ps1 -Rid <rid> [-Clean]
 #
-#   -Rid    One of: linux-x64, linux-arm64, linux-musl-x64, osx-arm64
+#   -Rid    One of: linux-x64, linux-arm64, linux-musl-x64, osx-arm64, win-x64
 #   -Clean  Remove the CMake build directory before configuring.
 #
-# NOTE: Windows (win-x64) is NOT a shipped RID for H3.NET.Native. This script is
-# provided so Windows contributors can build the macOS/linux artifacts under an
-# appropriate toolchain (e.g. WSL) or validate the pipeline locally.
+# NOTE: win-x64 IS a shipped RID. On Windows this script builds a native h3.dll
+# via MSVC (multi-config Visual Studio generator, --config Release) and stages it
+# to runtimes/win-x64/native/h3.dll (no lib prefix; .NET probing resolves the
+# LibraryImport name "h3" to h3.dll). Windows contributors can still build the
+# linux/macOS artifacts under an appropriate toolchain (e.g. WSL) instead.
 
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
-    [ValidateSet('linux-x64', 'linux-arm64', 'linux-musl-x64', 'osx-arm64')]
+    [ValidateSet('linux-x64', 'linux-arm64', 'linux-musl-x64', 'osx-arm64', 'win-x64')]
     [string]$Rid,
 
     [switch]$Clean
@@ -72,6 +73,7 @@ if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
 switch -Wildcard ($Rid) {
     'osx-*'   { $Ext = 'dylib' }
     'linux-*' { $Ext = 'so' }
+    'win-*'   { $Ext = 'dll' }
     default   { throw "unhandled rid '$Rid'" }
 }
 
@@ -105,61 +107,102 @@ Write-Info "building target 'h3'"
 & cmake --build $H3Build --target h3 --config Release -j
 if ($LASTEXITCODE -ne 0) { throw "cmake build failed (exit $LASTEXITCODE)" }
 
+# --- Determine staged filename by rid ----------------------------------------
+#
+# .NET probing resolves the LibraryImport name "h3" to "h3.dll" on Windows (no
+# lib prefix) and to "libh3.<ext>" on linux/macOS. The staged file MUST use the
+# platform's probe name.
+
+$destName = if ($Rid -like 'win-*') { 'h3.dll' } else { "libh3.$Ext" }
+
 # --- Locate the REAL built shared library ------------------------------------
 #
-# With SOVERSION=1, CMake emits a versioned real file plus an unversioned
-# symlink (libh3.1.dylib/libh3.dylib; libh3.so.1/libh3.so). Prefer the
-# unversioned probe name; fall back to any libh3*.<ext> match. We copy the
-# resolved real target so the staged file is never a symlink.
+# On linux/macOS, with SOVERSION=1 CMake emits a versioned real file plus an
+# unversioned symlink (libh3.1.dylib/libh3.dylib; libh3.so.1/libh3.so). Prefer
+# the unversioned probe name; fall back to any libh3*.<ext> match. We copy the
+# resolved real target so the staged file is never a symlink. On Windows the
+# multi-config Visual Studio generator drops h3.dll under a config subdir (e.g.
+# bin/Release/h3.dll), so find it recursively; Windows has no symlink concern.
 
-Write-Info "locating built shared library (*.$Ext) under $H3Build"
+Write-Info "locating built shared library ($destName) under $H3Build"
 
-$candidates = @(
-    (Join-Path $H3Build "lib/libh3.$Ext"),
-    (Join-Path $H3Build "libh3.$Ext")
-)
-$srcLib = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-
-if (-not $srcLib) {
-    $pattern = if ($Ext -eq 'dylib') { 'libh3*.dylib' } else { 'libh3.so*' }
-    $srcLib = Get-ChildItem -Path $H3Build -Recurse -Filter $pattern -ErrorAction SilentlyContinue |
+if ($Rid -like 'win-*') {
+    $srcLib = Get-ChildItem -Path $H3Build -Recurse -Filter 'h3.dll' -ErrorAction SilentlyContinue |
         Sort-Object FullName |
         Select-Object -First 1 -ExpandProperty FullName
+    if (-not $srcLib -or -not (Test-Path $srcLib)) {
+        throw "could not locate a built h3.dll under $H3Build"
+    }
 }
+else {
+    $candidates = @(
+        (Join-Path $H3Build "lib/libh3.$Ext"),
+        (Join-Path $H3Build "libh3.$Ext")
+    )
+    $srcLib = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 
-if (-not $srcLib -or -not (Test-Path $srcLib)) {
-    throw "could not locate a built libh3 shared library (*.$Ext) under $H3Build"
+    if (-not $srcLib) {
+        $pattern = if ($Ext -eq 'dylib') { 'libh3*.dylib' } else { 'libh3.so*' }
+        $srcLib = Get-ChildItem -Path $H3Build -Recurse -Filter $pattern -ErrorAction SilentlyContinue |
+            Sort-Object FullName |
+            Select-Object -First 1 -ExpandProperty FullName
+    }
+
+    if (-not $srcLib -or -not (Test-Path $srcLib)) {
+        throw "could not locate a built libh3 shared library (*.$Ext) under $H3Build"
+    }
 }
 Write-Info "found: $srcLib"
 
-# --- Stage to runtimes/<rid>/native/libh3.<ext> (dereferenced) ---------------
+# --- Stage to runtimes/<rid>/native/<destName> (dereferenced) ----------------
 #
-# Resolve any symlink to its real target before copying so the staged file is
-# the actual binary (symlinks pack unreliably into a .nupkg zip).
+# On linux/macOS, resolve any symlink to its real target before copying so the
+# staged file is the actual binary (symlinks pack unreliably into a .nupkg zip).
+# On Windows the located file is already a real DLL.
 
 if (-not (Test-Path $OutDir)) {
     New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
 }
-$destLib = Join-Path $OutDir "libh3.$Ext"
+$destLib = Join-Path $OutDir $destName
 
-$resolved = (Get-Item $srcLib)
-if ($resolved.LinkType -eq 'SymbolicLink' -and $resolved.Target) {
-    $linkTarget = $resolved.Target | Select-Object -First 1
-    if (-not [System.IO.Path]::IsPathRooted($linkTarget)) {
-        $linkTarget = Join-Path (Split-Path -Parent $srcLib) $linkTarget
+if ($Rid -notlike 'win-*') {
+    $resolved = (Get-Item $srcLib)
+    if ($resolved.LinkType -eq 'SymbolicLink' -and $resolved.Target) {
+        $linkTarget = $resolved.Target | Select-Object -First 1
+        if (-not [System.IO.Path]::IsPathRooted($linkTarget)) {
+            $linkTarget = Join-Path (Split-Path -Parent $srcLib) $linkTarget
+        }
+        $srcLib = (Resolve-Path $linkTarget).Path
     }
-    $srcLib = (Resolve-Path $linkTarget).Path
 }
 Copy-Item -Path $srcLib -Destination $destLib -Force
 Write-Info "staged: $destLib"
 
 # --- Verify exports ----------------------------------------------------------
 #
-# Prefer nm if available (e.g. under WSL / MSYS / LLVM). On native Windows nm is
-# typically absent; emit a warning rather than failing since win-* is unshipped.
+# On linux/macOS prefer nm (also available under WSL / MSYS / LLVM). On native
+# Windows nm is absent, so the export check is BEST-EFFORT: try dumpbin /exports
+# if the MSVC dev environment is on PATH, otherwise skip with an informational
+# message. The real proof is the managed-test load leg, so a missing tool must
+# NOT fail the build.
 
 $symbolChecked = $false
-if (Get-Command nm -ErrorAction SilentlyContinue) {
+if ($Rid -like 'win-*') {
+    if (Get-Command dumpbin -ErrorAction SilentlyContinue) {
+        $dumpOut = & dumpbin /exports $destLib 2>$null
+        if ($dumpOut -match 'latLngToCell') {
+            $symbolChecked = $true
+            Write-Info "verified export 'latLngToCell' via dumpbin"
+        }
+        else {
+            Write-WarnMsg "dumpbin did not report 'latLngToCell' in $destLib; relying on the managed-test load leg"
+        }
+    }
+    else {
+        Write-Info "dumpbin not on PATH; skipping export check (the managed-test load leg is the real proof)"
+    }
+}
+elseif (Get-Command nm -ErrorAction SilentlyContinue) {
     $nmOut = & nm -D $destLib 2>$null
     if (-not $nmOut) { $nmOut = & nm -gU $destLib 2>$null }
     if ($nmOut -match '(^|\s)_?latLngToCell(\s|$)') {
@@ -171,7 +214,7 @@ if (Get-Command nm -ErrorAction SilentlyContinue) {
     }
 }
 if (-not $symbolChecked) {
-    Write-WarnMsg "nm not available; skipped symbol verification for $destLib"
+    Write-WarnMsg "symbol verification skipped for $destLib"
 }
 
 # --- Success summary ---------------------------------------------------------
