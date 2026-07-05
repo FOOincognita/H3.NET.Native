@@ -7,7 +7,7 @@
 # Usage:
 #   build-native.sh <rid> [--clean] [--asan]
 #
-#   <rid>     One of: linux-x64, linux-arm64, linux-musl-x64, osx-arm64
+#   <rid>     One of: linux-x64, linux-arm64, linux-musl-x64, osx-arm64, osx-x64
 #   --clean   Remove the CMake build directory before configuring.
 #   --asan    Instrument libh3 with AddressSanitizer/LeakSanitizer. Uses a
 #             SEPARATE build directory (external/h3/build-asan) so the normal
@@ -23,7 +23,7 @@
 set -euo pipefail
 
 readonly EXPECTED_H3_TAG="v4.5.0"
-readonly VALID_RIDS=("linux-x64" "linux-arm64" "linux-musl-x64" "osx-arm64")
+readonly VALID_RIDS=("linux-x64" "linux-arm64" "linux-musl-x64" "osx-arm64" "osx-x64")
 
 die() {
     printf 'error: %s\n' "$*" >&2
@@ -41,7 +41,7 @@ info() {
 usage() {
     cat >&2 <<'EOF'
 Usage: build-native.sh <rid> [--clean] [--asan]
-  <rid>     One of: linux-x64, linux-arm64, linux-musl-x64, osx-arm64
+  <rid>     One of: linux-x64, linux-arm64, linux-musl-x64, osx-arm64, osx-x64
   --clean   Remove the CMake build directory before configuring.
   --asan    Instrument libh3 with AddressSanitizer/LeakSanitizer (separate
             build dir; requires LD_PRELOAD of libasan at runtime).
@@ -142,6 +142,15 @@ if [ "$ASAN" -eq 1 ]; then
         "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address"
     )
 fi
+
+# Pin the macOS target architecture explicitly per RID. This lets osx-x64
+# cross-compile x86_64 from an arm64 runner (best-practice thin per-RID asset,
+# not a fat universal2 binary) and pins osx-arm64 to its native slice. Appended
+# after the ASan block so sanitizer flags and the target arch coexist.
+case "$RID" in
+    osx-arm64) CMAKE_EXTRA_ARGS+=("-DCMAKE_OSX_ARCHITECTURES=arm64") ;;
+    osx-x64)   CMAKE_EXTRA_ARGS+=("-DCMAKE_OSX_ARCHITECTURES=x86_64") ;;
+esac
 
 info "configuring CMake (Release, shared) for rid=${RID}"
 cmake -S "$H3_SRC" -B "$H3_BUILD" \

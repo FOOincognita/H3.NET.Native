@@ -9,7 +9,7 @@
 # Usage:
 #   ./build-native.ps1 -Rid <rid> [-Clean]
 #
-#   -Rid    One of: linux-x64, linux-arm64, linux-musl-x64, osx-arm64
+#   -Rid    One of: linux-x64, linux-arm64, linux-musl-x64, osx-arm64, osx-x64
 #   -Clean  Remove the CMake build directory before configuring.
 #
 # NOTE: Windows (win-x64) is NOT a shipped RID for H3.NET.Native. This script is
@@ -19,7 +19,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
-    [ValidateSet('linux-x64', 'linux-arm64', 'linux-musl-x64', 'osx-arm64')]
+    [ValidateSet('linux-x64', 'linux-arm64', 'linux-musl-x64', 'osx-arm64', 'osx-x64')]
     [string]$Rid,
 
     [switch]$Clean
@@ -84,6 +84,15 @@ if ($Clean -and (Test-Path $H3Build)) {
 
 # --- Configure (out-of-source) -----------------------------------------------
 
+# Pin the macOS target architecture explicitly per RID (parity with
+# build-native.sh): osx-x64 cross-compiles x86_64 from an arm64 host, osx-arm64
+# pins its native slice. Splatted so non-macOS RIDs pass no extra arg.
+$ExtraArgs = @()
+switch -Wildcard ($Rid) {
+    'osx-arm64' { $ExtraArgs += '-DCMAKE_OSX_ARCHITECTURES=arm64' }
+    'osx-x64'   { $ExtraArgs += '-DCMAKE_OSX_ARCHITECTURES=x86_64' }
+}
+
 Write-Info "configuring CMake (Release, shared) for rid=$Rid"
 & cmake -S $H3Src -B $H3Build `
     -DCMAKE_BUILD_TYPE=Release `
@@ -96,7 +105,8 @@ Write-Info "configuring CMake (Release, shared) for rid=$Rid"
     -DBUILD_GENERATORS=OFF `
     -DENABLE_DOCS=OFF `
     -DENABLE_FORMAT=OFF `
-    -DENABLE_LINTING=OFF
+    -DENABLE_LINTING=OFF `
+    @ExtraArgs
 if ($LASTEXITCODE -ne 0) { throw "cmake configure failed (exit $LASTEXITCODE)" }
 
 # --- Build only the 'h3' shared-library target -------------------------------
