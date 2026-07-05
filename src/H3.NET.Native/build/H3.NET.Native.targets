@@ -21,6 +21,7 @@
           Condition="'$(NETCoreSdkRuntimeIdentifier)' != '' And Exists('$(MSBuildThisFileDirectory)../runtimes/$(NETCoreSdkRuntimeIdentifier)/native/')">
     <ItemGroup>
       <_H3NETHostNative Include="$(MSBuildThisFileDirectory)../runtimes/$(NETCoreSdkRuntimeIdentifier)/native/libh3.*" />
+      <_H3NETHostNative Include="$(MSBuildThisFileDirectory)../runtimes/$(NETCoreSdkRuntimeIdentifier)/native/h3.*" />
     </ItemGroup>
     <Copy SourceFiles="@(_H3NETHostNative)"
           DestinationFolder="$(OutDir)"
