@@ -9,7 +9,7 @@
 # Usage:
 #   ./build-native.ps1 -Rid <rid> [-Clean]
 #
-#   -Rid    One of: linux-x64, linux-musl-x64, osx-arm64
+#   -Rid    One of: linux-x64, linux-arm64, linux-musl-x64, osx-arm64
 #   -Clean  Remove the CMake build directory before configuring.
 #
 # NOTE: Windows (win-x64) is NOT a shipped RID for H3.NET.Native. This script is
@@ -19,7 +19,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
-    [ValidateSet('linux-x64', 'linux-musl-x64', 'osx-arm64')]
+    [ValidateSet('linux-x64', 'linux-arm64', 'linux-musl-x64', 'osx-arm64')]
     [string]$Rid,
 
     [switch]$Clean
