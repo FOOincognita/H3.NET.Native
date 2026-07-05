@@ -29,7 +29,7 @@ The native `libh3` is built per runtime identifier:
 build/build-native.sh <rid>
 ```
 
-This produces `runtimes/<rid>/native/libh3.{so,dylib}` (`.so` on Linux, `.dylib` on macOS), which is then packed into the NuGet package. Supported RIDs are `linux-x64`, `linux-musl-x64`, and `osx-arm64`.
+This produces `runtimes/<rid>/native/libh3.{so,dylib}` (`.so` on Linux, `.dylib` on macOS) or `h3.dll` on Windows, which is then packed into the NuGet package. Supported RIDs are `linux-x64`, `linux-arm64`, `linux-musl-x64`, `osx-arm64`, and `win-x64`.
 
 ## Test fixtures
 

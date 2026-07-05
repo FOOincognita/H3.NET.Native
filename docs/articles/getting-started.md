@@ -3,8 +3,9 @@
 ## Requirements
 
 - A .NET SDK that can target `net10.0` or `net8.0`.
-- A supported runtime: `linux-x64`, `linux-musl-x64`, or `osx-arm64`. The matching
-  native `libh3` is bundled in the package and resolved automatically for these RIDs.
+- A supported runtime: `linux-x64`, `linux-arm64`, `linux-musl-x64`, `osx-arm64`, or `win-x64`. The
+  matching native `libh3` is bundled in the package and resolved automatically for these RIDs
+  (Intel macOS, `osx-x64`, is not currently bundled).
 
 ## Add the package
 
