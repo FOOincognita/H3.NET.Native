@@ -54,6 +54,9 @@
     <None Include="../../runtimes/linux-x64/native/libh3.so"
           Pack="true" PackagePath="runtimes/linux-x64/native/" Visible="false"
           Condition="Exists('../../runtimes/linux-x64/native/libh3.so')" />
+    <None Include="../../runtimes/linux-arm64/native/libh3.so"
+          Pack="true" PackagePath="runtimes/linux-arm64/native/" Visible="false"
+          Condition="Exists('../../runtimes/linux-arm64/native/libh3.so')" />
     <None Include="../../runtimes/linux-musl-x64/native/libh3.so"
           Pack="true" PackagePath="runtimes/linux-musl-x64/native/" Visible="false"
           Condition="Exists('../../runtimes/linux-musl-x64/native/libh3.so')" />

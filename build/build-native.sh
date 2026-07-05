@@ -7,7 +7,7 @@
 # Usage:
 #   build-native.sh <rid> [--clean] [--asan]
 #
-#   <rid>     One of: linux-x64, linux-musl-x64, osx-arm64
+#   <rid>     One of: linux-x64, linux-arm64, linux-musl-x64, osx-arm64
 #   --clean   Remove the CMake build directory before configuring.
 #   --asan    Instrument libh3 with AddressSanitizer/LeakSanitizer. Uses a
 #             SEPARATE build directory (external/h3/build-asan) so the normal
@@ -23,7 +23,7 @@
 set -euo pipefail
 
 readonly EXPECTED_H3_TAG="v4.5.0"
-readonly VALID_RIDS=("linux-x64" "linux-musl-x64" "osx-arm64")
+readonly VALID_RIDS=("linux-x64" "linux-arm64" "linux-musl-x64" "osx-arm64")
 
 die() {
     printf 'error: %s\n' "$*" >&2
@@ -41,7 +41,7 @@ info() {
 usage() {
     cat >&2 <<'EOF'
 Usage: build-native.sh <rid> [--clean] [--asan]
-  <rid>     One of: linux-x64, linux-musl-x64, osx-arm64
+  <rid>     One of: linux-x64, linux-arm64, linux-musl-x64, osx-arm64
   --clean   Remove the CMake build directory before configuring.
   --asan    Instrument libh3 with AddressSanitizer/LeakSanitizer (separate
             build dir; requires LD_PRELOAD of libasan at runtime).
