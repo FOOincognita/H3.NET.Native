@@ -24,9 +24,9 @@ The bundled native assets are delivered through NuGet's `runtimes/{rid}/native/`
 | Aspect | Support |
 | --- | --- |
 | Target frameworks | `net10.0`, `net8.0` |
-| Runtime identifiers | `linux-x64`, `linux-musl-x64`, `osx-arm64` |
+| Runtime identifiers | `linux-x64`, `linux-arm64`, `linux-musl-x64`, `osx-arm64`, `win-x64` |
 
-There is currently **no Windows support** and **no Native AOT requirement or support**; both are out of scope for this initial release and may be considered later.
+Intel macOS (`osx-x64`) is not currently bundled (GitHub retired the hosted Intel runner used to load-test it). There is currently **no Native AOT requirement or support**, which is out of scope for this initial release and may be considered later.
 
 ## Quickstart
 

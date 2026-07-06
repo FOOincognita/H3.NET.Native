@@ -15,7 +15,7 @@ dotnet add package H3.NET.Native
 ## At a glance
 
 - **Target frameworks:** `net10.0`, `net8.0`.
-- **Bundled native runtimes (RIDs):** `linux-x64`, `linux-musl-x64`, `osx-arm64`.
+- **Bundled native runtimes (RIDs):** `linux-x64`, `linux-arm64`, `linux-musl-x64`, `osx-arm64`, `win-x64` (Intel macOS, `osx-x64`, is not currently bundled).
 - **Angular units:** all latitude/longitude values are in **degrees** (not radians).
 - **API surface:** the public `H3.NET.Native` namespace. The internal `H3.NET.Native.Interop`
   marshalling layer is intentionally not documented.

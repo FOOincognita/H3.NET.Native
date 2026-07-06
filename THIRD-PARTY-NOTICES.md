@@ -23,8 +23,8 @@ These components are redistributed in binary form as part of the NuGet package.
 - Pinned version: v4.5.0 (consumed as a git submodule at `external/h3` and
   compiled from source)
 - Distributed form: the native library `libh3`, bundled under
-  `runtimes/{rid}/native/` for RIDs `linux-x64`, `linux-musl-x64`, and
-  `osx-arm64`.
+  `runtimes/{rid}/native/` for RIDs `linux-x64`, `linux-arm64`,
+  `linux-musl-x64`, `osx-arm64`, and `win-x64`.
 - License: Apache License, Version 2.0
   (https://github.com/uber/h3/blob/v4.5.0/LICENSE)
 - Copyright: Copyright 2017-2021 Uber Technologies, Inc.
