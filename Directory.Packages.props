@@ -22,7 +22,7 @@
          resolves. 18.1.0+ requires MTP v2 and would break the xunit.v3 runner. Replaces
          the VSTest coverlet collector, which is ignored under MTP (raised MTP0001). -->
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.0.6" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />
   </ItemGroup>
 
   <!-- Applied to every project; build/dev assets only, never become package dependencies. -->
