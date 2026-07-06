@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-07-05
+## [1.0.0] - 2026-07-06
 
 First stable release of H3.NET.Native. The public API is declared stable
 under Semantic Versioning; it is unchanged from `0.2.0`.
