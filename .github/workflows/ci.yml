@@ -92,7 +92,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Setup .NET 8 + 10
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -134,7 +134,7 @@ jobs:
       # Install both SDKs; global.json selects 10.0.301 for builds while the 8.0
       # runtime covers the net8.0 test leg.
       - name: Setup .NET 8 + 10
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -299,7 +299,7 @@ jobs:
           path: runtimes/win-x64/native
 
       - name: Setup .NET 8 + 10
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -349,7 +349,7 @@ jobs:
           path: artifacts/feed
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.301
 
@@ -394,7 +394,7 @@ jobs:
           path: artifacts/feed
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.301
 
@@ -438,7 +438,7 @@ jobs:
         run: valgrind --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --error-exitcode=1 ./harness-build/leakcheck 100
 
       - name: Setup .NET 8 + 10
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -507,7 +507,7 @@ jobs:
         run: bash build/build-native.sh linux-x64 --asan
 
       - name: Setup .NET 8 + 10
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -575,7 +575,7 @@ jobs:
           path: runtimes/linux-x64/native
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.301
 
