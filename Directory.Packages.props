@@ -9,27 +9,27 @@
   <ItemGroup>
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageVersion Include="CsCheck" Version="4.7.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="pocketken.H3" Version="4.0.0" />
+    <PackageVersion Include="pocketken.H3" Version="4.5.0.1" />
     <!-- Matches pocketken.H3 4.0.0's own NetTopologySuite dependency; the benchmarks
          build pocketken's NTS-based polyfill input (Polygon) directly. -->
-    <PackageVersion Include="NetTopologySuite" Version="2.5.0" />
+    <PackageVersion Include="NetTopologySuite" Version="2.6.0" />
     <!-- MTP-native code coverage extension (adds the coverage flag to the MTP runner).
          Pinned to 18.0.x on purpose: 18.0.6 targets Microsoft.Testing.Platform v1
          (>= 1.8.4), matching the MTP v1 line that xunit.v3 3.2.2 (xunit.v3.mtp-v1)
          resolves. 18.1.0+ requires MTP v2 and would break the xunit.v3 runner. Replaces
          the VSTest coverlet collector, which is ignored under MTP (raised MTP0001). -->
-    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.0.6" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.9.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" />
   </ItemGroup>
 
   <!-- Applied to every project; build/dev assets only, never become package dependencies. -->
   <ItemGroup>
     <GlobalPackageReference Include="MinVer" Version="7.0.0" />
-    <GlobalPackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.301" />
-    <GlobalPackageReference Include="Meziantou.Analyzer" Version="3.0.117" />
+    <GlobalPackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.302" />
+    <GlobalPackageReference Include="Meziantou.Analyzer" Version="3.0.138" />
   </ItemGroup>
 
 </Project>
